@@ -146,7 +146,7 @@ export const pieChartOptions = {
   },
 };
 
-export const pieChartData = [63, 25, 12];
+export const pieChartData =[75, 25];
 
 export const barChartDataWeeklyRevenue = [
   {

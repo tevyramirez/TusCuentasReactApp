@@ -1,23 +1,13 @@
 import React from "react";
-
-// Admin Imports
 import MainDashboard from "views/admin/default";
-import NFTMarketplace from "views/admin/marketplace";
-import Profile from "views/admin/profile";
 import DataTables from "views/admin/tables";
 import RTLDefault from "views/rtl/default";
-
-// Auth Imports
+import { PiMoney } from "react-icons/pi";
+import { FaCashRegister } from "react-icons/fa6";
 import SignIn from "views/auth/SignIn";
-
-// Icon Imports
 import {
   MdHome,
-  MdOutlineShoppingCart,
-  MdBarChart,
-  MdPerson,
   MdLock,
-  MdBusiness,
 } from "react-icons/md";
 
 const routes = [
@@ -37,9 +27,9 @@ const routes = [
     secondary: true,
   }, */
   {
-    name: "Condominios",
+    name: "Recaudaciones",
     layout: "/admin",
-    icon: <MdBusiness className="h-6 w-6" />,
+    icon: <PiMoney className="h-6 w-6" />,
     path: "data-tables",
     component: <DataTables />,
   },
@@ -51,10 +41,10 @@ const routes = [
     component: <Profile />,
   }, */
   {
-    name: "Departamentos",
-    layout: "/rtl",
+    name: "Gastos Comunes",
+    layout: "/admin",
     path: "rtl",
-    icon: <MdHome className="h-6 w-6" />,
+    icon: <FaCashRegister className="h-6 w-6" />,
     component: <RTLDefault />,
   },
   {

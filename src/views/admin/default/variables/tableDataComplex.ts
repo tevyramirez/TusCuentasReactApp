@@ -1,34 +1,41 @@
 type RowObj = {
-	name: string;
-	status: string;
-	date: string;
-	progress: number;
-};
-
-const tableDataComplex: RowObj[] = [
+	unidad: string;
+	residente: string;
+	cobrado: number;
+	pagado: number;
+	saldo: number;
+  };
+  
+  const tableDataComplex: RowObj[] = [
 	{
-		name: 'Horizon UI PRO',
-		progress: 75.5,
-		status: 'Approved',
-		date: '12 Jan 2021'
+	  unidad: 'Departamento 101',
+	  pagado: 75000,
+	  residente: 'Juan Pérez',
+	  cobrado: 120000,
+	  saldo: 45000,
 	},
 	{
-		name: 'Horizon UI Free',
-		progress: 25.5,
-		status: 'Disable',
-		date: '21 Feb 2021'
+	  unidad: 'Departamento 202',
+	  pagado: 25500,
+	  residente: 'Ana González',
+	  cobrado: 50000,
+	  saldo: 24500,
 	},
 	{
-		name: 'Weekly Update',
-		progress: 90,
-		status: 'Error',
-		date: '13 Mar 2021'
+	  unidad: 'Casa A-01',
+	  pagado: 90000,
+	  residente: 'Pedro Ramírez',
+	  cobrado: 120000,
+	  saldo: 30000,
 	},
 	{
-		name: 'Marketplace',
-		progress: 50.5,
-		status: 'Approved',
-		date: '24 Oct 2022'
-	}
-];
-export default tableDataComplex;
+	  unidad: 'Oficina 301',
+	  pagado: 50500,
+	  residente: 'María Rodríguez',
+	  cobrado: 75000,
+	  saldo: 24500,
+	},
+  ];
+  
+  export default tableDataComplex;
+  

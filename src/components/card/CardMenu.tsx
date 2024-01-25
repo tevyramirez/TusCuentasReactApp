@@ -1,10 +1,9 @@
 import React from "react";
 import Dropdown from "components/dropdown";
-import { AiOutlineUser } from "react-icons/ai";
 import { BsThreeDots } from "react-icons/bs";
-import { FiSettings } from "react-icons/fi";
-import { AiOutlineShop } from "react-icons/ai";
-import { TiLightbulb } from "react-icons/ti";
+import { SiMicrosoftexcel } from "react-icons/si";
+import { GrDocumentPdf } from "react-icons/gr";
+import { RiUploadCloud2Line } from "react-icons/ri";
 
 function CardMenu(props: { transparent?: boolean }) {
   const { transparent } = props;
@@ -27,29 +26,23 @@ function CardMenu(props: { transparent?: boolean }) {
       classNames={`${transparent ? "top-8" : "top-11"} right-0 w-max`}
       children={
         <div className="z-50 w-max rounded-xl bg-white py-3 px-4 text-sm shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:shadow-none">
-          <p className="hover:text-black flex cursor-pointer items-center gap-2 text-gray-600 hover:font-medium">
+          <p className="hover:text-black flex cursor-pointer items-center gap-2 pt-1 text-gray-600 hover:font-medium">
             <span>
-              <AiOutlineUser />
+            <RiUploadCloud2Line />
             </span>
-            Panel 1
+            Importar desde Excel
+          </p>
+          <p className="hover:text-black mt-2   flex cursor-pointer items-center gap-2 text-gray-600 hover:font-medium">
+            <span>
+            <SiMicrosoftexcel />
+            </span>
+            Descargar como XLS
           </p>
           <p className="hover:text-black mt-2 flex cursor-pointer items-center gap-2 pt-1 text-gray-600 hover:font-medium">
             <span>
-              <AiOutlineShop />
+              <GrDocumentPdf />
             </span>
-            Panel 2
-          </p>
-          <p className="hover:text-black mt-2 flex cursor-pointer items-center gap-2 pt-1 text-gray-600 hover:font-medium">
-            <span>
-              <TiLightbulb />
-            </span>
-            Panel 3
-          </p>
-          <p className="hover:text-black mt-2 flex cursor-pointer items-center gap-2 pt-1 text-gray-600 hover:font-medium">
-            <span>
-              <FiSettings />
-            </span>
-            Panel 4
+            Descargar como PDF
           </p>
         </div>
       }

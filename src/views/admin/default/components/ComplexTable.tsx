@@ -14,12 +14,13 @@ import {
 } from "@tanstack/react-table";
 
 type RowObj = {
-  name: string;
-  status: string;
-  date: string;
-  progress: number;
-};
-
+	unidad: string;
+	residente: string;
+	cobrado: number;
+	pagado: number;
+	saldo: number;
+  acciones: string;
+  };
 const columnHelper = createColumnHelper<RowObj>();
 
 // const columns = columnsDataCheck;
@@ -28,10 +29,10 @@ export default function ComplexTable(props: { tableData: any }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   let defaultData = tableData;
   const columns = [
-    columnHelper.accessor("name", {
-      id: "name",
+    columnHelper.accessor("unidad", {
+      id: "unidad",
       header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">PAGO</p>
+        <p className="text-sm font-bold text-gray-600 dark:text-white">UNIDAD</p>
       ),
       cell: (info) => (
         <p className="text-sm font-bold text-navy-700 dark:text-white">
@@ -39,11 +40,70 @@ export default function ComplexTable(props: { tableData: any }) {
         </p>
       ),
     }),
-    columnHelper.accessor("status", {
+    columnHelper.accessor("residente", {
+      id: "residente",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">RESIDENTE</p>
+      ),
+      cell: (info) => (
+        <p className="text-sm font-bold text-navy-700 dark:text-white">
+          {info.getValue()}
+        </p>
+      ),
+    }),
+
+    columnHelper.accessor("cobrado", {
+      id: "cobrado",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">COBRADO</p>
+      ),
+      cell: (info) => (
+        <p className="text-sm font-bold text-navy-700 dark:text-white">
+          {info.getValue()}
+        </p>
+      ),
+    }),
+
+    columnHelper.accessor("pagado", {
+      id: "pagado",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">PAGADO</p>
+      ),
+      cell: (info) => (
+        <p className="text-sm font-bold text-navy-700 dark:text-white">
+          {info.getValue()}
+        </p>
+      ),
+    }),
+
+    columnHelper.accessor("saldo", {
+      id: "saldo",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">SALDO</p>
+      ),
+      cell: (info) => (
+        <p className="text-sm font-bold text-navy-700 dark:text-white">
+          {info.getValue()}
+        </p>
+      ),
+    }),
+
+    columnHelper.accessor("acciones", {
+      id: "acciones",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">ACCIONES</p>
+      ),
+      cell: (info) => (
+        <p className="text-sm font-bold text-navy-700 dark:text-white">
+          {info.getValue()}
+        </p>
+      ),
+    }),
+    /* columnHelper.accessor("status", {
       id: "status",
       header: () => (
         <p className="text-sm font-bold text-gray-600 dark:text-white">
-          ESTADO
+          
         </p>
       ),
       cell: (info) => (
@@ -84,7 +144,7 @@ export default function ComplexTable(props: { tableData: any }) {
           <Progress width="w-[108px]" value={info.getValue()} />
         </div>
       ),
-    }),
+    }), */
   ]; // eslint-disable-next-line
   const [data, setData] = React.useState(() => [...defaultData]);
   const table = useReactTable({
@@ -102,7 +162,7 @@ export default function ComplexTable(props: { tableData: any }) {
     <Card extra={"w-full h-full px-6 pb-6 sm:overflow-x-auto"}>
       <div className="relative flex items-center justify-between pt-4">
         <div className="text-xl font-bold text-navy-700 dark:text-white">
-          Complex Table
+          Resumen de cobros
         </div>
         <CardMenu />
       </div>
