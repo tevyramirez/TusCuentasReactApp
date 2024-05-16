@@ -10,6 +10,7 @@ function InputField(props: {
   state?: string;
   disabled?: boolean;
   type?: string;
+  
 }) {
   const { label, id, extra, type, placeholder, variant, state, disabled } =
     props;

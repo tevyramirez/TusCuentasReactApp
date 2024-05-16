@@ -1,13 +1,17 @@
 import React from "react";
-import MainDashboard from "views/admin/default";
-import DataTables from "views/admin/tables";
-import RTLDefault from "views/rtl/default";
-import { PiMoney } from "react-icons/pi";
+import MainDashboard from "views/admin/maindashboard";
+import Lote from "views/admin/lote"
+import Proveedores from "views/admin/proveedores";
+import GastosComunes from "views/admin/gastos";
+import Propietarios from "views/admin/propietarios"
 import { FaCashRegister } from "react-icons/fa6";
 import SignIn from "views/auth/SignIn";
 import {
   MdHome,
   MdLock,
+  MdEmojiPeople,
+
+  MdPeople
 } from "react-icons/md";
 
 const routes = [
@@ -18,34 +22,40 @@ const routes = [
     icon: <MdHome className="h-6 w-6" />,
     component: <MainDashboard />,
   },
-/*   {
-    name: "NFT Marketplace",
+  /* {
+    name: "Macrolotes",
     layout: "/admin",
-    path: "nft-marketplace",
-    icon: <MdOutlineShoppingCart className="h-6 w-6" />,
-    component: <NFTMarketplace />,
-    secondary: true,
+    icon: <MdMapsHomeWork className="h-6 w-6" />,
+    path: "macrolotes",
+    component: <Proveedores />,
+  }, */
+ /*  {
+    name: "Lotes",
+    layout: "/admin",
+    icon: <MdApartment className="h-6 w-6" />,
+    path: "loteh",
+    component: <Lote />,
   }, */
   {
-    name: "Recaudaciones",
+    name: "Proveedores",
     layout: "/admin",
-    icon: <PiMoney className="h-6 w-6" />,
-    path: "data-tables",
-    component: <DataTables />,
+    icon: <MdPeople className="h-6 w-6" />,
+    path: "proveedores",
+    component: <Proveedores />,
   },
-/*   {
-    name: "Profile",
-    layout: "/admin",
-    path: "profile",
-    icon: <MdPerson className="h-6 w-6" />,
-    component: <Profile />,
-  }, */
   {
     name: "Gastos Comunes",
     layout: "/admin",
-    path: "rtl",
+    path: "gastoscomunes",
     icon: <FaCashRegister className="h-6 w-6" />,
-    component: <RTLDefault />,
+    component: <GastosComunes />,
+  },
+  {
+    name: "Propietarios",
+    layout: "/admin",
+    path: "propietarios",
+    icon: <MdEmojiPeople className="h-6 w-6" />,
+    component: <Propietarios />,
   },
   {
     name: "Cerrar Sesion",
