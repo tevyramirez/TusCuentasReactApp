@@ -1,9 +1,21 @@
-import { useState, useEffect } from "react";
-import { TbLayoutSidebarLeftCollapse } from "react-icons/tb";
+import React, { useState, useEffect } from "react";
+import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapseFilled } from "react-icons/tb";
 import Links from "./components/Links";
 import routes from "routes";
 import axios from 'axios';
-import Popover from "components/popover";
+import { 
+  Button, 
+  Popover, 
+  PopoverTrigger, 
+  PopoverContent, 
+  PopoverHeader, 
+  PopoverBody, 
+  PopoverFooter, 
+  PopoverArrow, 
+  PopoverCloseButton, 
+  useToast, 
+  Portal 
+} from '@chakra-ui/react';
 
 interface Periodo {
   id_periodo: number;
@@ -12,15 +24,20 @@ interface Periodo {
   estado: string;
 }
 
-
-const Sidebar = (props: {
-  open: boolean;
-  onClose: React.MouseEventHandler<HTMLSpanElement>;
-}) => {
+const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSpanElement>; }) => {
   const { open, onClose } = props;
   const [periodos, setPeriodos] = useState<Periodo[]>([]);
   const [selectedPeriodoId, setSelectedPeriodoId] = useState<number | null>(null);
-  const [openConfirmationPopover, setOpenConfirmationPopover] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const toast = useToast();
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
+  const handleOpen = () => {
+    setIsOpen(true);
+  };
 
   const fetchPeriodos = async () => {
     try {
@@ -60,11 +77,7 @@ const Sidebar = (props: {
   const handlePeriodoClick = () => {
     if (periodos.length > 0) {
       const estado = periodos[0].estado;
-      if (estado === "cerrado") {
-        setOpenConfirmationPopover(true);
-      } else {
-        setOpenConfirmationPopover(true);
-      }
+      setIsOpen(true);
     }
   };
 
@@ -101,6 +114,7 @@ const Sidebar = (props: {
       console.error("Error al cerrar periodo:", error);
     }
   };
+
   const handleConfirmAction = () => {
     if (periodos.length > 0) {
       const estado = periodos[0].estado;
@@ -110,26 +124,22 @@ const Sidebar = (props: {
         cerrarPeriodo(periodos[0].id_periodo);
       }
     }
-    setOpenConfirmationPopover(false);
+    handleClose();
   };
+
   return (
     <div>
-      <div className={`${open ? "hidden" : ""}`}>
-        <span
-          className={`absolute top-4 right-4 block cursor-pointer ${open ? "text-md" : "text-xl"
-            }`}
+      <span
+          className={`absolute top-4 right-4 block cursor-pointer ${open ? "hidden" : "text-xl"}`}
           onClick={onClose}
         >
-          <TbLayoutSidebarLeftCollapse />
+          <TbLayoutSidebarRightCollapseFilled />
         </span>
-      </div>
       <div
-        className={`sm:none duration-175 linear fixed !z-50 flex min-h-full flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 ${open ? "translate-x-0" : "-translate-x-20"
-          }`}
+        className={`sm:none duration-175 linear fixed !z-50 flex min-h-full flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 ${open ? "translate-x-0" : "-translate-x-20"}`}
       >
         <span
-          className={`absolute top-4 right-4 block cursor-pointer ${open ? "text-xl" : "text-sm"
-            }`}
+          className={`absolute top-4 right-4 block cursor-pointer ${open ? "text-xl" : "text-xl"}`}
           onClick={onClose}
         >
           <TbLayoutSidebarLeftCollapse />
@@ -153,30 +163,34 @@ const Sidebar = (props: {
                     <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                       {optionsAnios}
                     </select>
-                    <Popover
-  trigger={
-    <button
-      type="button"
-      onClick={handlePeriodoClick}
-      className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm px-1 text-start"
-    >
-      {periodos.length > 0 && periodos[0].estado === "cerrado" && periodos[1].estado === "cerrado" ? "Abrir Periodo" : "Cerrar Periodo"}
-    </button>
-  }
-  extra="z-auto"
-  content={
-    <div >
-      <p>¿Está seguro de que quiere {periodos.length > 0 && periodos[0].estado === "cerrado" && periodos[1].estado === "cerrado" ? "abrir" : "cerrar"} el periodo?</p>
-      <div className="flex justify-end mt-4">
-        <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 mr-2" onClick={handleConfirmAction}>Confirmar</button>
-        <button className="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4" onClick={() => setOpenConfirmationPopover(false)}>Cancelar</button>
-      </div>
-    </div>
-  }
-/>
-
-        
-  
+                    
+                  </div>
+                  <div className="mt-2">
+                  <Popover isOpen={isOpen} onClose={handleClose}>
+                      <PopoverTrigger>
+                        <Button
+                        size='sm'
+                          onClick={handleOpen}
+                          colorScheme="blue"
+                        >
+                          {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' ? 'Abrir Periodo' : 'Cerrar Periodo'}
+                        </Button>
+                      </PopoverTrigger>
+                      <Portal>
+                        <PopoverContent zIndex="popover">
+                          <PopoverArrow />
+                          <PopoverCloseButton />
+                          <PopoverHeader>Confirmación</PopoverHeader>
+                          <PopoverBody>
+                            <p>¿Está seguro de que quiere {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' ? 'abrir' : 'cerrar'} el periodo?</p>
+                          </PopoverBody>
+                          <PopoverFooter justifyContent="flex-end">
+                            <Button colorScheme="blue" onClick={() => { handleConfirmAction(); handleClose(); }} mr={3}>Confirmar</Button>
+                            <Button variant="outline" onClick={handleClose}>Cancelar</Button>
+                          </PopoverFooter>
+                        </PopoverContent>
+                      </Portal>
+                    </Popover>
                   </div>
                 </form>
               </div>
@@ -185,14 +199,9 @@ const Sidebar = (props: {
             <ul className="mb-auto pt-1">
               <Links routes={routes} open={props.open} />
             </ul>
-
           </>
         )}
-        {/* Nav item */}
-        {/* Nav item end */}
-
       </div>
-      
     </div>
   );
 };

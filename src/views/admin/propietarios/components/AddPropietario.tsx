@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Flex, Text, Button } from '@chakra-ui/react';
+import { Box, Flex, Text, Button, Select } from '@chakra-ui/react';
 import Card from 'components/card/';
 import axios from 'axios';
 import { API_ADDRESS } from '../../../../variables/apiSettings'
+import { useToast } from '@chakra-ui/react'
 
 interface AddPropietarioProps {
   onGoBack: () => void,
@@ -10,6 +11,7 @@ interface AddPropietarioProps {
 }
 
 const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
+  const toast = useToast();
   const [propietario, setPropietario] = useState({
     razon_social: '',
     nombre: '',
@@ -78,6 +80,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
   );
 
   const handleSubmit = async () => {
+
     try {
       const response = await axios.post('http://localhost:8000/api/propietarios/', propietario);
       console.log('Propietario creado:', response.data);
@@ -91,16 +94,35 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
       // Paso 2: Establecer la relación con el lote
       const responseEstablecerRelacion = await axios.put(`http://localhost:8000/api/asignar-relacion/${relacionLote.loteId}/`, data);
       console.log('Relación establecida con el lote:', responseEstablecerRelacion.data);
+      // Mostrar toast de éxito
+      toast({
+        title: 'Éxito',
+        description: 'Propietario creado y relación establecida con el lote.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+        position:'top'
+      });
 
       // Aquí podrías redirigir al usuario a otra página o realizar alguna otra acción después de crear el propietario y establecer la relación con el lote.
 
     } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Hubo un problema al crear el propietario o al establecer la relación.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position:'top'
+      });
+
       console.error('Error al crear el propietario:', error);
+
     }
   };
 
   return (
-    <Card >
+    <Card p={5} >
       <div className="p-5">
         <Text fontSize="xl" fontWeight="bold" mb={4}>
           Información del usuario
@@ -110,7 +132,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
             <Text fontSize="s" fontWeight="thin" mb={4}>
               RUT
             </Text>
-            <input onChange={handleChange} name="rut" type="text" />
+            <input onChange={handleChange} className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" name="rut" type="text" />
           </Box>
           <Box flex="1" m={4}>
             <Text fontSize="s" fontWeight="thin" mb={4}>
@@ -121,14 +143,14 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
                 {propietario.razon_social}
               </p>
             ) : (
-              <input onChange={handleChange} name="nombre" type="text" />
+              <input className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={handleChange} name="nombre" type="text" />
             )}
           </Box>
           <Box flex="1" m={4}>
             <Text fontSize="s" fontWeight="thin" mb={4}>
               Apellido
             </Text>
-            <input onChange={handleChange} name="apellido" type="text" />
+            <input className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={handleChange} name="apellido" type="text" />
           </Box>
         </Flex>
         <Flex>
@@ -136,63 +158,73 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
             <Text fontSize="s" fontWeight="thin" mb={4}>
               E-mail
             </Text>
-            <input onChange={handleChange} name="email" type="text" />
+            <input className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={handleChange} name="email" type="text" />
           </Box>
           <Box flex="1" m={4}>
             <Text fontSize="s" fontWeight="thin" mb={4}>
               Número de Teléfono
             </Text>
-            <input onChange={handleChange} name="numero_telefono" type="text" />
+            <input className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={handleChange} name="numero_telefono" type="text" />
+          </Box>
+          <Box flex="1" m={4}>
           </Box>
         </Flex>
-
-        <Text fontSize="xl" fontWeight="bold" mb={4}>
-          Información de la unidad
-        </Text>
-        <Flex>
-          <Box flex="1" m={4}>
-            <Text fontSize="s" fontWeight="thin" mb={4}>
-              Unidad
-            </Text>
-
-            <select onChange={handleChangeRelacion} name="loteId" className="select-dropdown">
+        <Flex mt={7}>
+          <Text fontSize="xl" fontWeight="bold" mt={4} mb={4}>
+            Información de la unidad
+          </Text>
+        </Flex>
+        <Flex mt={4}>
+          <Box flex="1" m={2}>
+            
+            <Select onChange={handleChangeRelacion} aria-placeholder='Selecciona Unidad' name="loteId" className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" >
+              <option value="" disabled selected>
+                Selecciona Unidad
+              </option>
               {filteredOptions.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Box>
 
-          <Box flex="1" m={4}>
-            <Text fontSize="s" fontWeight="thin" mb={4}>
-              Tipo de Propietario
-            </Text>
-            <select onChange={handleChangeRelacion} name="tipo_relacion" className="select-dropdown">
+          <Box flex="1" m={2}>
+            <Select onChange={handleChangeRelacion} name="tipo_relacion"  >
+            <option value="" disabled selected>
+    Selecciona Tipo de Propietario
+  </option>
               <option value="arrendatario">Arrendatario</option>
               <option value="corredor">Corredor</option>
               <option value="dueno">Dueño</option>
-            </select>
+            </Select>
           </Box>
+        
         </Flex>
 
 
-        <Flex>
-          <Button
-            onClick={handleSubmit}
-            className="btn-configurar-cuenta m-3 px-full linear flex cursor-pointer items-center justify-center rounded-xl bg-brand-500 py-[11px] font-bold text-white transition duration-200 hover:bg-brand-600 hover:text-white active:bg-brand-700 dark:bg-brand-400 dark:hover:bg-brand-300 dark:active:bg-brand-200"
-          >
-            Agregar
-          </Button>
-          <Button
-            onClick={() => {
-              onGoBack();
-              update();
-            }}
-            className="btn-configurar-cuenta m-3 px-full linear flex cursor-pointer items-center justify-center rounded-xl bg-brand-500 py-[11px] font-bold text-white transition duration-200 hover:bg-brand-600 hover:text-white active:bg-brand-700 dark:bg-brand-400 dark:hover:bg-brand-300 dark:active:bg-brand-200"
-          >
-            Volver
-          </Button>
+        <Flex mt={2}>
+          <Box flex="1" m={2} ></Box>
+          <Box flex="1" m={2} ></Box>
+          <Box m={2} >
+            <Button
+              onClick={handleSubmit}
+              colorScheme='blue'
+            >
+              Agregar
+            </Button>
+            <Button
+              onClick={() => {
+                onGoBack();
+                update();
+              }}
+              colorScheme='blue'
+              m={2}
+            >
+              Volver
+            </Button>
+          </Box>
+
         </Flex>
       </div>
     </Card>

@@ -2,15 +2,16 @@ import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "components/navbar";
 import Sidebar from "components/sidebar";
+import SidebarToggleButton from "components/sidebar/components/SidebarButtonToggle";
 import Footer from "components/footer/Footer";
 import routes from "routes";
+import SidebarWrapper from "components/sidebar/components/SidebarWrapper";
 
 export default function Admin(props: { [x: string]: any }) {
   const { ...rest } = props;
   const location = useLocation();
   const [open, setOpen] = React.useState(true);
   const [currentRoute, setCurrentRoute] = React.useState("Main Dashboard");
-  console.log("Hola");
 
   React.useEffect(() => {
     window.addEventListener("resize", () =>
@@ -60,34 +61,41 @@ export default function Admin(props: { [x: string]: any }) {
 
   return (
     <div className="flex h-full w-full">
-      <Sidebar open={open} onClose={() => setOpen(!open)} />
-      {/* Navbar & Main Content */}
-      <div
-        className={`h-full w-full bg-lightPrimary dark:!bg-navy-900 ${
-          open ? "xl:ml-[313px]" : ""
+      <div>
+    <SidebarWrapper open={open} onToggle={() => setOpen(!open)} />
+    {/* Navbar & Main Content */}
+    </div>
+    <div
+      className={`h-full w-full bg-lightPrimary dark:!bg-navy-900 ${
+        open ? 'ml-80' : 'ml-16'
+      }`}
+    >
+      {/* Main Content */}
+      <main
+        className={`mx-[12px] h-full flex-none transition-all md:pr-2 ${
+          open ? 'ml-16' : 'ml-16'
         }`}
       >
-        {/* Main Content */}
-        <main
-          className={`mx-[12px] h-full flex-none transition-all md:pr-2 ${
-            open ? "" : "xl:ml-[80px]"
-          }`}
-        >
-          {/* Routes */}
-          <div className="h-full">
-            <Navbar onOpenSidenav={() => setOpen(!open)} brandText={currentRoute} secondary={getActiveNavbar(routes)} {...rest} />
-            <div className="pt-5s mx-auto mb-auto h-full min-h-[84vh] p-2 md:pr-2">
-              <Routes>
-                {getRoutes(routes)}
-                <Route path="/" element={<Navigate to="/admin/default" replace />} />
-              </Routes>
-            </div>
-            <div className="p-3">
-              <Footer />
-            </div>
+        {/* Routes */}
+        <div className="h-full">
+          <Navbar
+            onOpenSidenav={() => setOpen(!open)}
+            brandText={currentRoute}
+            secondary={getActiveNavbar(routes)}
+            {...rest}
+          />
+          <div className="pt-5s mx-auto mb-auto h-full min-h-[84vh] p-2 md:pr-2">
+            <Routes>
+              {getRoutes(routes)}
+              <Route path="/" element={<Navigate to="/admin/default" replace />} />
+            </Routes>
           </div>
-        </main>
-      </div>
+          <div className="p-3">
+            <Footer />
+          </div>
+        </div>
+      </main>
     </div>
+  </div>
   );
 }
