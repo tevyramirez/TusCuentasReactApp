@@ -42,7 +42,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const fetchPeriodos = async () => {
     try {
-      const response = await fetch(API_ADDRESS+"api/periodo/");
+      const response = await fetch(API_ADDRESS+"periodo/");
       const data = await response.json();
 
       const periodosAbiertos = data.filter((periodo: Periodo) => periodo.estado === "abierto");
@@ -84,7 +84,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const abrirPeriodo = async () => {
     try {
-      const response = await fetch(API_ADDRESS+"api/periodo/abrir/", {
+      const response = await fetch(API_ADDRESS+"periodo/abrir/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -101,7 +101,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const cerrarPeriodo = async (periodoId: number) => {
     try {
-      const response = await fetch(`${API_ADDRESS}api/periodo/${periodoId}/cerrar/`, {
+      const response = await fetch(`${API_ADDRESS}periodo/${periodoId}/cerrar/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
