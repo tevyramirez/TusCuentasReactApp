@@ -3,6 +3,7 @@ import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapseFilled } from 
 import Links from "./components/Links";
 import routes from "routes";
 import axios from 'axios';
+import { API_ADDRESS } from "variables/apiSettings";
 import { 
   Button, 
   Popover, 
@@ -41,7 +42,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const fetchPeriodos = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/periodo/");
+      const response = await fetch(API_ADDRESS+"api/periodo/");
       const data = await response.json();
 
       const periodosAbiertos = data.filter((periodo: Periodo) => periodo.estado === "abierto");
@@ -83,7 +84,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const abrirPeriodo = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/periodo/abrir/", {
+      const response = await fetch(API_ADDRESS+"api/periodo/abrir/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -100,7 +101,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const cerrarPeriodo = async (periodoId: number) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/periodo/${periodoId}/cerrar/`, {
+      const response = await fetch(`${API_ADDRESS}api/periodo/${periodoId}/cerrar/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
