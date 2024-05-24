@@ -6,6 +6,7 @@ import axios from 'axios'
 import { FiFile, FiSearch } from 'react-icons/fi'
 import { ModifierFlags } from 'typescript';
 import GastosComunes from 'views/admin/gastos';
+import { API_ADDRESS } from 'variables/apiSettings';
 
 interface Categoria {
   id_categoria: number;
@@ -146,7 +147,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
   useEffect(() => {
     async function fetchCategorias() {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/categorias-gastos/');
+        const response = await axios.get(API_ADDRESS+'categorias-gastos/');
         setCategorias(response.data);
       } catch (error) {
         console.error('Error al obtener las categorías:', error);
@@ -155,7 +156,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
 
     async function fetchProveedores() {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/proveedores/');
+        const response = await axios.get(API_ADDRESS+'proveedores/');
         setProveedores(response.data);
       } catch (error) {
         console.error('Error al obtener los proveedores:', error);
@@ -163,7 +164,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
     }
     async function fetchLotes() {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/lotes/');
+        const response = await axios.get(API_ADDRESS+'lotes/');
         setLotes(response.data);
       } catch (error) {
         console.error('Error al obtener los lotes:', error);
@@ -171,7 +172,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
     }
     async function fetchPeriodo() {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/periodo/');
+        const response = await axios.get(API_ADDRESS+'periodo/');
         // Process the response data as needed
         setPeriodo(response.data.filter((item: Periodo) => item.estado === "abierto"));
       

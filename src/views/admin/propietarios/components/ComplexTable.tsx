@@ -128,7 +128,7 @@ export default function ComplexTable(props: { tableData: any }) {
             <Tbody>
               {isLoading ? (
                 <Tr>
-                  <Td borderBottom="none" colSpan={columns.length}>
+                  <Td colSpan={columns.length}>
                     <Flex justifyContent="center" alignItems="center">
                       <Spinner />
                     </Flex>

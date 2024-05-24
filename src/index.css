@@ -28,8 +28,8 @@ input:checked.defaultCheckbox::before {
 	opacity: 1;
 }
 
-.btn-configurar-cuenta,
-.btn-nuevo-pago {
-  width: 120px; /* Cambia esto al ancho deseado */
-  /* Otros estilos si es necesario */
-}
+table td {
+	border: none; /* Elimina el borde predeterminado */
+	outline: none; /* Elimina el contorno predeterminado */
+	text-decoration: none; /* Elimina el subrayado predeterminado */
+  }
