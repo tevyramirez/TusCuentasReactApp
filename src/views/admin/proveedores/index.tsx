@@ -1,7 +1,7 @@
 import React, {  useState } from "react";
 import ComplexTable from "views/admin/propietarios/components/ComplexTable";
 import FilterBar from "./components/FilterBar";
-import AddPropietario from "./components/AddPropietario";
+import AddPropietario from "./components/AddProveedor";
 import axios from 'axios'
 import {API_ADDRESS} from '../../../variables/apiSettings'
 

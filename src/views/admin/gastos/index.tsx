@@ -4,6 +4,7 @@ import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddGastos";
 import axios from 'axios'
 import {API_ADDRESS} from '../../../variables/apiSettings'
+import { capitalize } from 'lodash';
 
 const Dashboard: React.FC = () => {
   console.log("Propietarios test");
@@ -13,18 +14,20 @@ const Dashboard: React.FC = () => {
   const obtenerPropietarios = async () => {
     try {
       const data = await axios.get(API_ADDRESS+"gastos/");
+
       console.log("DATA PROVEEDORES");
       console.log(data);
       const dataMapped = data.data.map((item: any) => (
         {
           "ID Propietario": item.id_gastos,
-          "Categoria":item.categoria_nombre,
-          "Proveedor": item.proveedor,
+          "Categoria": item.categoria_nombre,
+          "Proveedor": item.proveedor_nombre + " " + item.proveedor_apellido,
+          "Monto": item.monto,
           "Fecha": item.fecha,
-          "Metodo Pago": item.metodo_pago,
-          "Descripcion": item.descripcion ,
-          
-      }));
+          "Metodo Pago": capitalize(item.metodo_pago), // Use the capitalize function to capitalize the method of payment
+          "Descripcion": item.descripcion,
+        }
+      ));
       console.log(dataMapped);
       setPropietarios(dataMapped);
     } catch (error) {

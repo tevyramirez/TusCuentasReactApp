@@ -1,45 +1,108 @@
-import React, { useState } from 'react';
-import { Box, Flex, Text, Select, Button, Input, FormControl, FormLabel } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Box, Flex, Text, Select, Button, Input, FormControl, FormLabel, useToast } from '@chakra-ui/react';
 import Card from 'components/card/';
 import InputField from 'components/fields/InputField'
 import axios from 'axios'
+import { API_ADDRESS } from 'variables/apiSettings';
 
-interface AddPropietarioProps {
+interface AddProveedorProps {
   onGoBack: () => void,
   update: () => void;
-  
+
+}
+interface Proveedor {
+  rut: string;
+  nombre: string;
+  apellido: string;
+  telefono: string;
+  email: string;
+  categoriaServicio: Categoria;
+}
+interface Categoria {
+  id_categoria: number;
+  nombre: string;
+  descripcion: string;
 }
 
 
 
-const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
-  const [propietario, setPropietario] = useState({
+const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
+  const [proveedor, setProveedor] = useState<Proveedor>({
+    categoriaServicio: { id_categoria: 0, nombre: '', descripcion: '' },
     nombre: '',
     apellido: '',
     rut: '',
     email: '',
-    numero_telefono: '',
-    alicuota: '',
+    telefono: '',
   });
-
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const toast = useToast();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     console.log("Hola", name, value)
-    setPropietario(prevState => ({
+    setProveedor(prevState => ({
       ...prevState,
       [name]: value,
     }));
   };
+  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCategoriaId = parseInt(e.target.value);
+    const selectedCategoria = categorias.find(categoria => categoria.id_categoria === selectedCategoriaId);
+
+    if (selectedCategoria) {
+      setProveedor(prevState => ({
+        ...prevState,
+        categoriaServicio: selectedCategoria,
+      }));
+    }
+  };
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/api/proveedores/', propietario);
-      console.log('Propietario creado:', response.data);
+      const dataToSend = {
+        rut: proveedor.rut,
+        nombre: proveedor.nombre,
+        apellido: proveedor.apellido,
+        telefono: proveedor.telefono,
+        email: proveedor.email,
+        categoriaServicio: proveedor.categoriaServicio.id_categoria
+      }
+      
+      const response = await axios.post(API_ADDRESS + 'proveedores/', dataToSend);
+      console.log('Proveedor creado:', response.data);
+      toast({
+        title: 'Éxito',
+        description: 'Proveedor creado exitosamente :D.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+        position:'top'
+      });
       // Aquí podrías redirigir al usuario a otra página o realizar alguna otra acción después de crear el propietario.
     } catch (error) {
-      console.error('Error al crear el propietario:', error);
+      console.error('Error al crear el Proveedor:', error);
+      toast({
+        title: 'Error',
+        description: 'Error al momento de agregar el proveedor',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position:'top'
+      });
     }
   };
+
+  useEffect(() => {
+    async function fetchCategorias() {
+      try {
+        const response = await axios.get(API_ADDRESS + 'categorias-gastos/');
+        setCategorias(response.data);
+      } catch (error) {
+        console.error('Error al obtener las categorías:', error);
+      }
+    }
+    fetchCategorias();
+  }, [])
 
   return (
     <Card >
@@ -71,7 +134,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
           <input onChange={handleChange} name="apellido" type="text" className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
           </input>
         </Box>
-        
+
 
       </Flex>
       <Flex m={4}>
@@ -89,16 +152,11 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
             Numero Telefónico
           </Text>
 
-          <input onChange={handleChange} name="numero_telefono" type="text" className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+          <input onChange={handleChange} name="telefono" type="text" className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
           </input>
         </Box>
         <Box flex="1" m={4} >
-          {/* <Text fontSize="s" fontWeight="thin" mb={4}>
-            Alicuota
-          </Text>
 
-          <input onChange={handleChange} name="alicuota" type="text" className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-          </input> */}
         </Box>
 
       </Flex>
@@ -106,8 +164,18 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
       <Text className="m-3" fontSize="xl" fontWeight="bold" mb={4}>
         Información del servicio
       </Text>
-      <Flex m={2}>
-        <Box m={2}>
+      <Flex m={4}>
+        <Box flex="1" m={4}>
+          <Text m={4}>Categoría</Text>
+          <select className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" onChange={handleCategoriaChange} >
+            {categorias.map(categoria => (
+              <option key={categoria.id_categoria} value={categoria.id_categoria}>
+                {categoria.nombre}
+              </option>
+            ))}
+          </select>
+        </Box>
+        <Box flex="1" m={4}>
           <InputField
             id="Descripcion"
             label="Descripcion"
@@ -116,13 +184,6 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
             variant="standard"
           />
         </Box>
-      {/*   <Box m={4}>
-          <Text m={4}>Tipo de Servicio</Text>
-          <select className="select-dropdown m-2">
-            <option value="No">No</option>
-            <option value="Si">Si</option>
-          </select>
-        </Box> */}
       </Flex>
 
       <Flex>

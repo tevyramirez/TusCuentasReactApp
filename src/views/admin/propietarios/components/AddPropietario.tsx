@@ -82,7 +82,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
   const handleSubmit = async () => {
 
     try {
-      const response = await axios.post(API_ADDRESS+'api/propietarios/', propietario);
+      const response = await axios.post(API_ADDRESS+'propietarios/', propietario);
       console.log('Propietario creado:', response.data);
       // Aquí podrías redirigir al usuario a otra página o realizar alguna otra acción después de crear el propietario.
       const propietarioId = response.data.id; // Obtener el ID del propietario creado
@@ -92,7 +92,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
       };
       console.log(data)
       // Paso 2: Establecer la relación con el lote
-      const responseEstablecerRelacion = await axios.put(`${API_ADDRESS}api/asignar-relacion/${relacionLote.loteId}/`, data);
+      const responseEstablecerRelacion = await axios.put(`${API_ADDRESS}asignar-relacion/${relacionLote.loteId}/`, data);
       console.log('Relación establecida con el lote:', responseEstablecerRelacion.data);
       // Mostrar toast de éxito
       toast({

@@ -7,6 +7,8 @@ import { FiFile, FiSearch } from 'react-icons/fi'
 import { ModifierFlags } from 'typescript';
 import GastosComunes from 'views/admin/gastos';
 import { API_ADDRESS } from 'variables/apiSettings';
+import DatePicker from 'react-datepicker'
+import { Checkbox, CheckboxGroup, useToast } from '@chakra-ui/react'
 
 interface Categoria {
   id_categoria: number;
@@ -47,33 +49,46 @@ interface Gasto {
   cuotas: number;
   descripcion: string;
   periodo: number;
+  es_general: boolean;
 }
-interface Periodo{
-  id_periodo : number;
-  fecha_inicio : Date;
-  fecha_fin : Date;
-  estado : string;
+interface Periodo {
+  id_periodo: number;
+  fecha_inicio: Date;
+  fecha_fin: Date;
+  estado: string;
 }
 
 const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
+  const toast = useToast();
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [periodo, setPeriodo] = useState<Periodo[]>([]);
+  const [lotes, setLotes] = useState<Lote[]>([]);
+  const [startDate, setStartDate] = useState(new Date());
+  const [showCuotas, setShowCuotas] = useState(false);
+
   const [gasto, setGasto] = useState<Gasto>({
     categoria: { id_categoria: 0, nombre: '', descripcion: '' },
-    proveedor: { id_proveedor: 0, rut: '', nombre: '', apellido: '', telefono: '',categoriaGasto: 0 },
+    proveedor: { id_proveedor: 0, rut: '', nombre: '', apellido: '', telefono: '', categoriaGasto: 0 },
     lote: { id_lote: 0, numero_unidad: '', metraje_cuadrado: 0, alicuota: 0 },
-    fecha: new Date(),
+    fecha: startDate,
     monto: 0,
     metodo_pago: '',
     estado: '',
     cuotas: 0,
     descripcion: '',
     periodo: 0,
+    es_general: false,
   });
+
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     // Manejar campos especiales
     if (name === 'fecha') {
+      console.log(value);
       setGasto(prevState => ({
         ...prevState,
         fecha: new Date(value), // Convertir valor a objeto Date
@@ -84,7 +99,25 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
         ...prevState,
         [name]: parseFloat(value),
       }));
-    } else {
+
+    } else if (name === 'metodo_pago') {
+      if (value === 'credito') {
+        // Mostrar el campo de cuotas si el método de pago es crédito
+        setShowCuotas(value === 'credito');
+        setGasto(prevState => ({
+          ...prevState,
+          [name]: value,
+        }));
+      } else {
+        setShowCuotas(false);
+        setGasto(prevState => ({
+          ...prevState,
+          [name]: value,
+        }));
+      }
+
+    }
+    else {
       // Para otros campos, simplemente actualizar el estado
       setGasto(prevState => ({
         ...prevState,
@@ -92,13 +125,27 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
       }));
     }
   };
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { checked } = e.target;
+    setGasto((prevState) => ({
+      ...prevState,
+      es_general: checked,
+      lote: { id_lote: 0, numero_unidad: '', metraje_cuadrado: 0, alicuota: 0 }
+    }));
+  };
 
 
+  const handleChangeDate = (date: Date) => {
+    setGasto(prevState => ({
+      ...prevState,
+      fecha: date,
+    }));
+  };
   const handleProveedorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedProveedorId = parseInt(e.target.value);
     console.log("Proveedor seleccionado:", selectedProveedorId); // Verificar si se selecciona el proveedor correctamente
     const selectedProveedor = proveedores.find(proveedor => proveedor.id_proveedor === selectedProveedorId);
-  
+
     if (selectedProveedor) {
       const selectedCategoria = categorias.find(categoria => categoria.id_categoria === selectedProveedor.categoriaGasto);
       setGasto(prevState => ({
@@ -138,16 +185,10 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
     }
   };
 
-
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
-  const [periodo, setPeriodo] = useState<Periodo[]>([]);
-  const [lotes, setLotes] = useState<Lote[]>([]);
-
   useEffect(() => {
     async function fetchCategorias() {
       try {
-        const response = await axios.get(API_ADDRESS+'categorias-gastos/');
+        const response = await axios.get(API_ADDRESS + 'categorias-gastos/');
         setCategorias(response.data);
       } catch (error) {
         console.error('Error al obtener las categorías:', error);
@@ -156,7 +197,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
 
     async function fetchProveedores() {
       try {
-        const response = await axios.get(API_ADDRESS+'proveedores/');
+        const response = await axios.get(API_ADDRESS + 'proveedores/');
         setProveedores(response.data);
       } catch (error) {
         console.error('Error al obtener los proveedores:', error);
@@ -164,7 +205,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
     }
     async function fetchLotes() {
       try {
-        const response = await axios.get(API_ADDRESS+'lotes/');
+        const response = await axios.get(API_ADDRESS + 'lotes/');
         setLotes(response.data);
       } catch (error) {
         console.error('Error al obtener los lotes:', error);
@@ -172,10 +213,10 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
     }
     async function fetchPeriodo() {
       try {
-        const response = await axios.get(API_ADDRESS+'periodo/');
+        const response = await axios.get(API_ADDRESS + 'periodo/');
         // Process the response data as needed
         setPeriodo(response.data.filter((item: Periodo) => item.estado === "abierto"));
-      
+
       } catch (error) {
         console.error('Error al obtener el periodo:', error);
       }
@@ -200,13 +241,31 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
         estado: gasto.estado,
         cuotas: gasto.cuotas,
         descripcion: gasto.descripcion,
+        periodo: periodo[0].id_periodo,
       };
       console.log(dataToSend)
-      const response = await axios.post('http://localhost:8000/api/gastos/', dataToSend);
+      const response = await axios.post(API_ADDRESS + 'gastos/', dataToSend);
       console.log('Gasto creado:', response.data);
+      toast({
+        title: 'Éxito',
+        description: 'Gasto creado exitosamente :D.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+        position: 'top'
+      });
+
       // Aquí podrías redirigir al usuario a otra página o realizar alguna otra acción después de crear el gasto.
     } catch (error) {
       console.error('Error al crear el gasto:', error);
+      toast({
+        title: 'Error',
+        description: 'Error al momento de agregar el gasto',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top'
+      });
     }
   };
 
@@ -220,7 +279,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
         <Flex m={4}>
           <Box flex="1" m={4}>
             <Text m={4}>Categoría</Text>
-            <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={handleCategoriaChange} >
+            <select className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" onChange={handleCategoriaChange} >
               {categorias.map(categoria => (
                 <option key={categoria.id_categoria} value={categoria.id_categoria}>
                   {categoria.nombre}
@@ -230,7 +289,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
           </Box>
           <Box flex="1" m={4}>
             <Text m={4}>Proveedor</Text>
-            <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={handleProveedorChange} name="proveedor">
+            <select className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" onChange={handleProveedorChange} name="proveedor">
               {proveedores.map(proveedor => (
                 <option key={proveedor.id_proveedor} value={proveedor.id_proveedor}>
                   {proveedor.nombre} {proveedor.apellido}
@@ -256,20 +315,10 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
 
           </Box>
           <Box flex="1" m={4}>
-            <Text m={4}>Mes</Text>
-            <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-              <option value="No">Abril</option>
-              <option value="Si">Si</option>
-            </select>
-          </Box>
-          <Box flex="1" m={4}>
-            <Text m={4}>Año</Text>
-            <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-              <option value="No">2024</option>
-              <option value="Si">2023</option>
-            </select>
-          </Box>
+            <Text m={4}>Fecha</Text>
 
+            <DatePicker className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"  dateFormat="dd/MM/yyyy" selected={gasto.fecha} onChange={handleChangeDate} />
+          </Box>
         </Flex>
         <Flex m={4}>
 
@@ -324,29 +373,32 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
             </input>
           </Box>
           <Box flex="1" m={4}>
-            <Text m={4}>Estado</Text>
-            <select onChange={handleChange} name="estado" className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <Text fontWeight="thin" m={4}>Estado</Text>
+            <select onChange={handleChange} name="estado" className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
               <option value="impago">Impago</option>
               <option value="pagado">Pagado</option>
             </select>
           </Box>
           <Box flex="1" m={4}>
-            <Text m={4}>Método de Pago</Text>
-            <select onChange={handleChange} name="metodo_pago" className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <Text fontWeight="thin" m={4}>Método de Pago</Text>
+            <select onChange={handleChange} name="metodo_pago" className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
               <option value="efectivo">Efectivo</option>
               <option value="transferencia">Transferencia</option>
+              <option value="credito">Credito</option>
             </select>
           </Box>
-          <Box flex="1" m={4}>
-            <Text m={4}>Numero de cuotas</Text>
-            <select onChange={handleChange} className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-          </Box>
+          {showCuotas && (
+            <Box flex="1" m={4}>
+              <Text fontWeight="thin" m={4}>Número de Cuotas</Text>
+              <select onChange={handleChange} name="cuotas" className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Seleccionar Número de Cuotas</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </Box>
+          )}
         </Flex>
       </Card>
       <Card>
@@ -362,7 +414,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
               Asignación
             </Text>
 
-            <select onChange={handleLoteChange} className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" name="lote">
+            <select onChange={handleLoteChange} className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" name="lote" disabled={gasto.es_general}>
               {lotes.map(lote => (
                 <option key={lote.id_lote} value={lote.id_lote}>
                   {lote.numero_unidad}
@@ -370,6 +422,14 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
               ))}
             </select>
           </Box>
+          <Box flex="1" m={4}>
+
+            <Checkbox isChecked={gasto.es_general}
+              onChange={handleCheckboxChange}
+              name="es_general">¿Es un gasto general?</Checkbox>
+
+          </Box>
+
         </Flex>
       </Card>
 
