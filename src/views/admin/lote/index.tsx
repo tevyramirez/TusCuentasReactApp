@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import ComplexTable from "views/admin/lote/components/ComplexTable";
 import axios from "axios";
 import FilterBar from "./components/FilterBar";
+import { API_ADDRESS } from "variables/apiSettings";
 /* import AddLote from "./components/AddLote" */
 
 const Dashboard = () => {
@@ -12,7 +13,7 @@ const Dashboard = () => {
 
   const obtenerPropietarios = async () => {
     try {
-      const data = await axios.get("http://localhost:8000/api/lotes/");
+      const data = await axios.get(API_ADDRESS+"/lotes/");
       console.log("DATA LOTES");
       console.log(data);
       const dataMapped = data.data.map((item: any) => ({

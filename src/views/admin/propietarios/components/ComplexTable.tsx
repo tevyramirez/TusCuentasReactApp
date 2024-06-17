@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Card,
@@ -24,47 +24,94 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import ViewModal from "./ViewModal";
+import EditModal from "./EditModal";
+import ConfirmModal from "./ConfirmModal"; // Importa el componente del modal de confirmación
 
 type RowObj = {
   [key: string]: any;
 };
 
-export default function ComplexTable(props: { tableData: any }) {
-  const { tableData } = props;
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+export default function ComplexTable(props: { tableData: any, onUpdate: (updatedData: any) => void, onDelete: (id: string) => void }) {
+  const { tableData, onUpdate, onDelete } = props;
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [modalData, setModalData] = useState<RowObj | null>(null);
+  const [editData, setEditData] = useState<RowObj | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const columnHelper = createColumnHelper<RowObj>();
 
   const firstRow = tableData.length > 0 ? tableData[0] : {};
 
-  const columns = Object.keys(firstRow)
-    .filter((key) => key !== "ID Propietario")
-    .filter((key) => key !== "Razon Social")
-    .map((key) =>
-      columnHelper.accessor(key, {
-        id: key,
-        header: () => <Th>{key}</Th>,
-        cell: (info) => {
-          const value = info.getValue();
-          if (key === "Propiedades") {
-            const units = value.split(", ");
-            return (
-              <Select>
-                <option value="">Selecciona</option>
-                {units.map((unit: string, index: number) => (
-                  <option key={index} value={unit.trim()}>
-                    {unit.trim()}
-                  </option>
-                ))}
-              </Select>
-            );
-          } else {
-            return <Td>{value}</Td>;
-          }
-        },
-      })
-    );
+  const openModal = (data: RowObj) => {
+    setModalData(data);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalData(null);
+  };
+
+  const openEditModal = (data: RowObj) => {
+    setEditData(data);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditData(null);
+  };
+
+  const openConfirmModal = (id: string) => {
+    setDeleteId(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const closeConfirmModal = () => {
+    setIsConfirmModalOpen(false);
+    setDeleteId(null);
+  };
+
+  const handleSave = (updatedData: any) => {
+    onUpdate(updatedData);
+  };
+
+  const handleDelete = () => {
+    if (deleteId) {
+      onDelete(deleteId);
+      closeConfirmModal();
+    }
+  };
+
+  const columns = Object.keys(firstRow).map((key) =>
+    columnHelper.accessor(key, {
+      id: key,
+      header: () => <Th>{key}</Th>,
+      cell: (info) => {
+        const value = info.getValue();
+        if (key === "Propiedades") {
+          const units = value.split(", ");
+          return (
+            <Select>
+              <option value="">Selecciona</option>
+              {units.map((unit: string, index: number) => (
+                <option key={index} value={unit.trim()}>
+                  {unit.trim()}
+                </option>
+              ))}
+            </Select>
+          );
+        } else {
+          return <Td>{value}</Td>;
+        }
+      },
+    })
+  );
 
   columns.push(
     columnHelper.accessor("actions", {
@@ -75,10 +122,18 @@ export default function ComplexTable(props: { tableData: any }) {
           <IconButton
             aria-label="Ver"
             icon={<MdVisibility />}
-            value={info.row.original.id}
+            onClick={() => openModal(info.row.original)} // Abrir modal con la data del propietario
           />
-          <IconButton aria-label="Editar" icon={<MdEdit />} />
-          <IconButton aria-label="Eliminar" icon={<MdDelete />} />
+          <IconButton
+            aria-label="Editar"
+            icon={<MdEdit />}
+            onClick={() => openEditModal(info.row.original)} // Abrir modal de edición con la data del propietario
+          />
+          <IconButton
+            aria-label="Eliminar"
+            icon={<MdDelete />}
+            onClick={() => openConfirmModal(info.row.original["ID Propietario"])} // Abrir modal de confirmación con el id del propietario
+          />
         </Flex>
       ),
     })
@@ -114,7 +169,6 @@ export default function ComplexTable(props: { tableData: any }) {
                     <Th
                       key={header.id}
                       onClick={header.column.getToggleSortingHandler()}
-                     
                     >
                       {flexRender(
                         header.column.columnDef.header,
@@ -152,6 +206,18 @@ export default function ComplexTable(props: { tableData: any }) {
           </Table>
         </TableContainer>
       </CardBody>
+      <ViewModal isOpen={isModalOpen} onClose={closeModal} data={modalData} />
+      <EditModal
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        data={editData}
+        onSave={handleSave}
+      />
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleDelete}
+      />
     </Card>
   );
 }
