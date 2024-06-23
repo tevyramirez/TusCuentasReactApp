@@ -26,14 +26,16 @@ import {
 } from "@tanstack/react-table";
 import ViewModal from "./ViewModal";
 import EditModal from "./EditModal";
-import ConfirmModal from "./ConfirmModal"; // Importa el componente del modal de confirmación
+import ConfirmModal from "./ConfirmModal";
 
 type RowObj = {
   [key: string]: any;
 };
 
-export default function ComplexTable(props: { tableData: any, onUpdate: (updatedData: any) => void, onDelete: (id: string) => void }) {
-  const { tableData, onUpdate, onDelete } = props;
+export default function ComplexTable(props: { tableData: any, onUpdate: (updatedData: any) => void, onDelete: (id: string) => void, hiddenColumns: any }) {
+  
+  const { tableData, onUpdate, onDelete, hiddenColumns } = props;
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,7 +90,8 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
     }
   };
 
-  const columns = Object.keys(firstRow).map((key) =>
+
+  const columns = Object.keys(firstRow).filter(key => !hiddenColumns.includes(key)).map((key) =>
     columnHelper.accessor(key, {
       id: key,
       header: () => <Th>{key}</Th>,

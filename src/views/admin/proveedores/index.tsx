@@ -11,6 +11,7 @@ const Dashboard: React.FC = () => {
   const toast = useToast();
   const [propietarios, setPropietarios] = React.useState([]);
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
+  const hiddenColumns = ["ID Propietario"]
 
   const obtenerData = async () => {
     try {
@@ -104,7 +105,11 @@ const Dashboard: React.FC = () => {
           {!showAddPropietario && (
             <>
               <FilterBar onAddPropietario={handleAddPropietario} />
-              <ComplexTable tableData={propietarios} onUpdate={handleUpdatePropietario} onDelete={handleDeletePropietario}/>
+              <ComplexTable 
+              tableData={propietarios} 
+              onUpdate={handleUpdatePropietario} 
+              onDelete={handleDeletePropietario}
+              hiddenColumns={hiddenColumns}/>
             </>
           )}
           {showAddPropietario && (
