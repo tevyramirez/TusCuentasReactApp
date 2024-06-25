@@ -6,6 +6,7 @@ import axios from 'axios'
 import {API_ADDRESS} from '../../../variables/apiSettings'
 import { useToast } from '@chakra-ui/react';
 
+
 const Dashboard: React.FC = () => {
   console.log("Propietarios test");
   const toast = useToast();

@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Flex, Text, Button, Select, Input } from '@chakra-ui/react';
-import {
-  FormControl,
-  FormErrorMessage,
-  FormLabel
-} from '@chakra-ui/react'
+import { FormControl, FormErrorMessage, FormLabel } from '@chakra-ui/react';
 import Card from 'components/card/';
 import axios from 'axios';
-import { API_ADDRESS } from '../../../../variables/apiSettings'
-import { useToast } from '@chakra-ui/react'
-import { validateRut } from "@cristiansantana/chile-rut"
+import { API_ADDRESS } from '../../../../variables/apiSettings';
+import { useToast } from '@chakra-ui/react';
+import { validateRut } from "@cristiansantana/chile-rut";
 
 interface AddPropietarioProps {
   onGoBack: () => void,
@@ -31,17 +27,17 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
     propietario: '',
     tipo_relacion: '',
   });
-
   const [unidades, setUnidades] = useState<any[]>([]);
   const [propietariosOptions, setPropietariosOptions] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [rutError, setRutError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [relacionesDisponibles, setRelacionesDisponibles] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(API_ADDRESS + 'lotes/');
+        const response = await axios.get(API_ADDRESS + 'lotes-disponibles/');
         setUnidades(response.data);
       } catch (error) {
         console.error('Error al obtener los datos de las unidades:', error);
@@ -53,8 +49,9 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
 
   useEffect(() => {
     const propietariosList = unidades.map((unidad: any) => ({
-      value: unidad.id_lote,
-      label: unidad.numero_unidad,
+      value: unidad.lote.id_lote,
+      label: unidad.lote.numero_unidad,
+      relaciones: unidad.relaciones.map((rel: any) => rel.tipo_relacion),
     }));
     setPropietariosOptions(propietariosList);
   }, [unidades]);
@@ -88,6 +85,14 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
 
   const handleChangeRelacion = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'loteId') {
+      const selectedUnidad = propietariosOptions.find(option => option.value.toString() === value);
+      const tiposRelacionExistentes = selectedUnidad ? selectedUnidad.relaciones : [];
+      console.log("RelacionesExistentes",tiposRelacionExistentes)
+      const tiposRelacionDisponibles = ['Dueño','Arrendatario','Corredor'].filter(tipo => !tiposRelacionExistentes.includes(tipo));
+      console.log(tiposRelacionDisponibles)
+      setRelacionesDisponibles(tiposRelacionDisponibles);
+    }
     setRelacionLote(prevState => ({
       ...prevState,
       [name]: value,
@@ -122,7 +127,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
         propietario: propietarioId, // ID del propietario que deseas asignar al lote
         tipo_relacion: relacionLote.tipo_relacion, // Tipo de relación (propietario, arrendatario, corredor)
       };
-      const responseEstablecerRelacion = await axios.put(`${API_ADDRESS}asignar-relacion/${relacionLote.loteId}/`, data);
+      await axios.put(`${API_ADDRESS}asignar-relacion/${relacionLote.loteId}/`, data);
       toast({
         title: 'Éxito',
         description: 'Propietario creado y relación establecida con el lote.',
@@ -131,7 +136,8 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
         isClosable: true,
         position: 'top'
       });
-
+      onGoBack();
+      update();
     } catch (error) {
       toast({
         title: 'Error',
@@ -195,8 +201,8 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
         </Flex>
         <Flex mt={4}>
           <FormControl flex="1" m={2}>
-            <Select onChange={handleChangeRelacion} name="loteId">
-              <option value="" disabled selected>
+            <Select onChange={handleChangeRelacion} name="loteId" value={relacionLote.loteId}>
+              <option value="" disabled>
                 Selecciona Unidad
               </option>
               {filteredOptions.map(option => (
@@ -206,14 +212,16 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
               ))}
             </Select>
           </FormControl>
-          <FormControl flex="1" m={2}>
-            <Select onChange={handleChangeRelacion} name="tipo_relacion">
-              <option value="" disabled selected>
+          <FormControl flex="1" m={2} isDisabled={!relacionLote.loteId}>
+            <Select onChange={handleChangeRelacion} name="tipo_relacion" value={relacionLote.tipo_relacion}>
+              <option value="" disabled>
                 Selecciona Tipo de Propietario
               </option>
-              <option value="arrendatario">Arrendatario</option>
-              <option value="corredor">Corredor</option>
-              <option value="dueno">Dueño</option>
+              {relacionesDisponibles.map(tipo => (
+                <option key={tipo} value={tipo}>
+                  {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+                </option>
+              ))}
             </Select>
           </FormControl>
         </Flex>

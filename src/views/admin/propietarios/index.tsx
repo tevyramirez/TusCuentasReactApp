@@ -19,7 +19,8 @@ const PropietariosDashboard: React.FC = () => {
       const response = await axios.get(`${API_ADDRESS}propietarios/`);
       const dataMapped = response.data.map((item: any) => ({
         "ID Propietario": item.id,
-        "Propiedades": item.lotes.map((lote: any) => `${lote.lote.numero_unidad} (${lote.tipo_relacion})`).join(", "),
+        "Propiedades": item.lotes.map((lote: any) => `${lote.lote.numero_unidad}`).join(", "),
+        "Rol": item.lotes.map((lote:any) =>`${lote.tipo_relacion}`),
         "Rut": item.rut,
         "Razon Social": item.razon_social,
         "Nombre": item.razon_social ? item.razon_social : `${item.nombre}`,

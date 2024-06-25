@@ -10,6 +10,10 @@ import {
   Button,
   Input,
   VStack,
+  Grid,
+  GridItem,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react";
 
 type EditModalProps = {
@@ -45,19 +49,30 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, data, onSave }) 
         <ModalHeader>Editar Detalle</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {formData && (
-            <VStack spacing={3}>
-              {Object.keys(formData).map((key) => (
-                <Input
-                  key={key}
-                  name={key}
-                  value={formData[key]}
-                  onChange={handleChange}
-                  placeholder={key}
-                />
-              ))}
-            </VStack>
-          )}
+          <FormControl>
+            {formData && (
+              <VStack spacing={3} align="stretch">
+                {Object.keys(formData).map((key) => (
+                  <Grid templateColumns="150px 1fr" gap={4} alignItems="center" key={key}>
+                    <GridItem>
+                      <FormLabel htmlFor={key} mb="0">
+                        {key}:
+                      </FormLabel>
+                    </GridItem>
+                    <GridItem>
+                      <Input
+                        id={key}
+                        name={key}
+                        value={formData[key]}
+                        onChange={handleChange}
+                        placeholder={key}
+                      />
+                    </GridItem>
+                  </Grid>
+                ))}
+              </VStack>
+            )}
+          </FormControl>
         </ModalBody>
         <ModalFooter>
           <Button colorScheme="blue" onClick={handleSave}>

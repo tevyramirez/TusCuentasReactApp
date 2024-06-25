@@ -97,7 +97,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
       header: () => <Th>{key}</Th>,
       cell: (info) => {
         const value = info.getValue();
-        if (key === "Propiedades") {
+        if (key === "Propiedades2") {
           const units = value.split(", ");
           return (
             <Select>
