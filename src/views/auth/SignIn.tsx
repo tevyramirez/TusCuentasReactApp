@@ -26,8 +26,11 @@ const SignIn: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         login(data.access);
+        console.log("se logea")
         // Redirigir al usuario a la página deseada después del inicio de sesión
-   // Ejemplo: redirige a la página de dashboard
+        // Ejemplo: redirige a la página de dashboard
+        window.location.href = '/admin';
+
       } else {
         const data = await response.json();
         setError(data.detail || 'Failed to login');

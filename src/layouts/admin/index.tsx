@@ -1,12 +1,9 @@
 import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "components/navbar";
-import Sidebar from "components/sidebar";
-import SidebarToggleButton from "components/sidebar/components/SidebarButtonToggle";
 import Footer from "components/footer/Footer";
 import routes from "routes";
 import SidebarWrapper from "components/sidebar/components/SidebarWrapper";
-
 export default function Admin(props: { [x: string]: any }) {
   const { ...rest } = props;
   const location = useLocation();
@@ -65,6 +62,7 @@ export default function Admin(props: { [x: string]: any }) {
     <SidebarWrapper open={open} onToggle={() => setOpen(!open)} />
     {/* Navbar & Main Content */}
     </div>
+   
     <div
       className={`h-full w-full bg-lightPrimary dark:!bg-navy-900 ${
         open ? 'ml-80' : 'ml-16'
@@ -96,6 +94,7 @@ export default function Admin(props: { [x: string]: any }) {
         </div>
       </main>
     </div>
+
   </div>
   );
 }

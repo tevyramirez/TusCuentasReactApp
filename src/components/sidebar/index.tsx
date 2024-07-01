@@ -15,7 +15,9 @@ import {
   PopoverArrow, 
   PopoverCloseButton, 
   useToast, 
-  Portal 
+  Portal, 
+  Slide,
+  Fade
 } from '@chakra-ui/react';
 
 interface Periodo {
@@ -131,78 +133,81 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
   return (
     <div>
       <span
-          className={`absolute top-4 right-4 block cursor-pointer ${open ? "hidden" : "text-xl"}`}
-          onClick={onClose}
-        >
-          <TbLayoutSidebarRightCollapseFilled />
-        </span>
-      <div
-        className={`sm:none duration-175 linear fixed !z-50 flex min-h-full flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 ${open ? "translate-x-0" : "-translate-x-20"}`}
+        className={`absolute top-4 right-4 block cursor-pointer ${open ? "hidden" : "text-xl"}`}
+        onClick={onClose}
       >
-        <span
-          className={`absolute top-4 right-4 block cursor-pointer ${open ? "text-xl" : "text-xl"}`}
-          onClick={onClose}
-        >
-          <TbLayoutSidebarLeftCollapse />
-        </span>
-        {open && (
-          <>
-            <div className={`mx-[56px] mt-[50px] flex items-center`}>
-              <div className="mt-1 ml-1 h-2.5 font-poppins text-[24px] font-bold uppercase text-navy-700 dark:text-white">
-                AVISO<span className="font-medium">DE</span>COBRO
-              </div>
-            </div>
-            <div className="mt-[58px] mb-3 h-px bg-gray-300 dark:bg-white/30" />
-            <div className={`mx-[10px] flex items-center`}>
-              <div className="max-w-sm mx-auto">
-                <form className="max-w-sm mx-auto">
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Periodo</label>
-                  <div className="flex">
-                    <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                      {optionsMeses}
-                    </select>
-                    <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                      {optionsAnios}
-                    </select>
-                    
+        <TbLayoutSidebarRightCollapseFilled />
+      </span>
+      <Slide direction="left" in={open}>
+        <Fade in={open}>
+          <div
+            className={`sm:none duration-175 linear fixed !z-50 flex min-h-full flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 ${open ? "translate-x-0" : "-translate-x-20"}`}
+          >
+            <span
+              className={`absolute top-4 right-4 block cursor-pointer ${open ? "text-xl" : "text-xl"}`}
+              onClick={onClose}
+            >
+              <TbLayoutSidebarLeftCollapse />
+            </span>
+            {open && (
+              <>
+                <div className={`mx-[56px] mt-[50px] flex items-center`}>
+                  <div className="mt-1 ml-1 h-2.5 font-poppins text-[24px] font-bold uppercase text-navy-700 dark:text-white">
+                    AVISO<span className="font-medium">DE</span>COBRO
                   </div>
-                  <div className="mt-2">
-                  <Popover isOpen={isOpen} onClose={handleClose}>
-                      <PopoverTrigger>
-                        <Button
-                        size='sm'
-                          onClick={handleOpen}
-                          colorScheme="blue"
-                        >
-                          {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' ? 'Abrir Periodo' : 'Cerrar Periodo'}
-                        </Button>
-                      </PopoverTrigger>
-                      <Portal>
-                        <PopoverContent zIndex="popover">
-                          <PopoverArrow />
-                          <PopoverCloseButton />
-                          <PopoverHeader>Confirmación</PopoverHeader>
-                          <PopoverBody>
-                            <p>¿Está seguro de que quiere {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' ? 'abrir' : 'cerrar'} el periodo?</p>
-                          </PopoverBody>
-                          <PopoverFooter justifyContent="flex-end">
-                            <Button colorScheme="blue" onClick={() => { handleConfirmAction(); handleClose(); }} mr={3}>Confirmar</Button>
-                            <Button variant="outline" onClick={handleClose}>Cancelar</Button>
-                          </PopoverFooter>
-                        </PopoverContent>
-                      </Portal>
-                    </Popover>
+                </div>
+                <div className="mt-[58px] mb-3 h-px bg-gray-300 dark:bg-white/30" />
+                <div className={`mx-[10px] flex items-center`}>
+                  <div className="max-w-sm mx-auto">
+                    <form className="max-w-sm mx-auto">
+                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Periodo</label>
+                      <div className="flex">
+                        <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                          {optionsMeses}
+                        </select>
+                        <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                          {optionsAnios}
+                        </select>
+                      </div>
+                      <div className="mt-2">
+                        <Popover isOpen={isOpen} onClose={handleClose}>
+                          <PopoverTrigger>
+                            <Button
+                              size='sm'
+                              onClick={handleOpen}
+                              colorScheme="blue"
+                            >
+                              {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' ? 'Abrir Periodo' : 'Cerrar Periodo'}
+                            </Button>
+                          </PopoverTrigger>
+                          <Portal>
+                            <PopoverContent zIndex="popover">
+                              <PopoverArrow />
+                              <PopoverCloseButton />
+                              <PopoverHeader>Confirmación</PopoverHeader>
+                              <PopoverBody>
+                                <p>¿Está seguro de que quiere {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' ? 'abrir' : 'cerrar'} el periodo?</p>
+                              </PopoverBody>
+                              <PopoverFooter justifyContent="flex-end">
+                                <Button colorScheme="blue" onClick={() => { handleConfirmAction(); handleClose(); }} mr={3}>Confirmar</Button>
+                                <Button variant="outline" onClick={handleClose}>Cancelar</Button>
+                              </PopoverFooter>
+                            </PopoverContent>
+                          </Portal>
+                        </Popover>
+                      </div>
+                    </form>
                   </div>
-                </form>
-              </div>
-            </div>
-            <div className="mt-3 mb-7 h-px bg-gray-300 dark:bg-white/30" />
-            <ul className="mb-auto pt-1">
-              <Links routes={routes} open={props.open} />
-            </ul>
-          </>
-        )}
-      </div>
+                </div>
+                <div className="mt-3 mb-7 h-px bg-gray-300 dark:bg-white/30" />
+                <ul className="mb-auto pt-1">
+                  <Links routes={routes} open={props.open} />
+                </ul>
+              </>
+            )}
+          </div>
+        </Fade>
+      </Slide>
     </div>
   );
 };
