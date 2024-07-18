@@ -33,10 +33,10 @@ const SignIn: React.FC = () => {
 
       } else {
         const data = await response.json();
-        setError(data.detail || 'Failed to login');
+        setError(data.detail || 'Ocurrió un error, intenta nuevamente');
       }
     } catch (error) {
-      setError('Failed to login');
+      setError('Ocurrió un error, intenta nuevamente');
     }
   };
 
@@ -44,10 +44,10 @@ const SignIn: React.FC = () => {
     <div className="mt-16 mb-16 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
       <div className="mt-[10vh] w-full max-w-full flex-col items-center md:pl-4 lg:pl-0 xl:max-w-[420px]">
         <h4 className="mb-2.5 text-4xl font-bold text-navy-700 dark:text-white">
-          Ingresa
+          AVISO<span className='font-thin'>DE</span>COBRO
         </h4>
         <p className="mb-9 ml-1 text-base text-gray-600">
-          Usa tu E-mail y contraseña 
+          Ingresa aquí usando tus credenciales
         </p>
       
         <form onSubmit={handleSubmit} className="w-full">
@@ -79,8 +79,11 @@ const SignIn: React.FC = () => {
             <FormErrorMessage>{error}</FormErrorMessage>
           </FormControl>
 
-          {/* Remember me checkbox and forgot password link */}
-          <div className="mb-4 flex items-center justify-between px-2">
+          {/* Remember me checkbox and forgot password link NO ACTIVOS PORQUE NO ESTAN FUNCIONALES
+          AGREGAR FUTURAMENTE */}
+
+
+ {/*          <div className="mb-4 flex items-center justify-between px-2">
             <div className="flex items-center">
               <input type="checkbox" className="form-checkbox h-4 w-4 text-brand-500 dark:text-white" />
               <p className="ml-2 text-sm font-medium text-navy-700 dark:text-white">
@@ -90,7 +93,7 @@ const SignIn: React.FC = () => {
             <Link to="/forgot-password" className="text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white">
               ¿Olvidaste la Contraseña?
             </Link>
-          </div>
+          </div> */}
 
           {/* Sign in button */}
           <Button type="submit" className="w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200">
@@ -99,11 +102,11 @@ const SignIn: React.FC = () => {
         </form>
 
         {/* Separator line and "or" text */}
-        <div className="mb-6 mt-6 flex items-center gap-3">
+{/*         <div className="mb-6 mt-6 flex items-center gap-3">
           <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
           <p className="text-base text-gray-600 dark:text-white"> o </p>
           <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
-        </div>
+        </div> */}
 
         {/* Link to registration */}
         {/* <span className="text-sm font-medium text-navy-700 dark:text-gray-600">

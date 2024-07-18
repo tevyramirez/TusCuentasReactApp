@@ -32,6 +32,9 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [rutError, setRutError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [telefonoError, setTelefonoError] = useState('');
+  const [nombreError, setNombreError] = useState('');
+  const [apellidoError, setApellidoError] = useState('');
   const [relacionesDisponibles, setRelacionesDisponibles] = useState<string[]>([]);
 
   useEffect(() => {
@@ -68,12 +71,39 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
     }
 
     if (name === 'email') {
-      // Simple email validation regex
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
         setEmailError('Ingrese un email válido.');
       } else {
         setEmailError('');
+      }
+    }
+
+    if (name === 'numero_telefono') {
+      const telefonoRegex = /^\d+$/;
+      if (!telefonoRegex.test(value)) {
+        setTelefonoError('Ingrese un número de teléfono válido.');
+      } else if (value.length < 9 || value.length > 11) {
+        setTelefonoError('El número de teléfono debe tener entre 9 y 11 dígitos.');
+      } else {
+        setTelefonoError('');
+      }
+    }
+
+    if (name === 'nombre' || name === 'apellido') {
+      const nombreApellidoRegex = /^[a-zA-Z\s]+$/;
+      if (!nombreApellidoRegex.test(value)) {
+        if (name === 'nombre') {
+          setNombreError('El nombre no puede contener números ni caracteres especiales.');
+        } else {
+          setApellidoError('El apellido no puede contener números ni caracteres especiales.');
+        }
+      } else {
+        if (name === 'nombre') {
+          setNombreError('');
+        } else {
+          setApellidoError('');
+        }
       }
     }
 
@@ -88,9 +118,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
     if (name === 'loteId') {
       const selectedUnidad = propietariosOptions.find(option => option.value.toString() === value);
       const tiposRelacionExistentes = selectedUnidad ? selectedUnidad.relaciones : [];
-      console.log("RelacionesExistentes",tiposRelacionExistentes)
-      const tiposRelacionDisponibles = ['Dueño','Arrendatario','Corredor'].filter(tipo => !tiposRelacionExistentes.includes(tipo));
-      console.log(tiposRelacionDisponibles)
+      const tiposRelacionDisponibles = ['Dueño', 'Arrendatario', 'Corredor'].filter(tipo => !tiposRelacionExistentes.includes(tipo));
       setRelacionesDisponibles(tiposRelacionDisponibles);
     }
     setRelacionLote(prevState => ({
@@ -108,7 +136,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
   );
 
   const handleSubmit = async () => {
-    if (rutError || emailError) {
+    if (rutError || emailError || telefonoError || nombreError || apellidoError) {
       toast({
         title: 'Error',
         description: 'Corrija los errores en el formulario antes de enviar.',
@@ -136,8 +164,24 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
         isClosable: true,
         position: 'top'
       });
-      onGoBack();
-      update();
+      if (window.confirm('¿Desea agregar otro propietario?')) {
+        setPropietario({
+          razon_social: '',
+          nombre: '',
+          apellido: '',
+          rut: '',
+          email: '',
+          numero_telefono: '',
+        });
+        setRelacionLote({
+          loteId: '',
+          propietario: '',
+          tipo_relacion: '',
+        });
+      } else {
+        onGoBack();
+        update();
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -167,19 +211,15 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
             />
             {rutError && <FormErrorMessage>{rutError}</FormErrorMessage>}
           </FormControl>
-          <FormControl flex="1" m={4}>
+          <FormControl isInvalid={nombreError !== ''} flex="1" m={4}>
             <FormLabel>Nombre</FormLabel>
-            {propietario.razon_social ? (
-              <p onClick={() => setPropietario(prevState => ({ ...prevState, nombre: prevState.razon_social }))}>
-                {propietario.razon_social}
-              </p>
-            ) : (
-              <Input onChange={handleChange} name="nombre" type="text" />
-            )}
+            <Input onChange={handleChange} name="nombre" type="text" />
+            {nombreError && <FormErrorMessage>{nombreError}</FormErrorMessage>}
           </FormControl>
-          <FormControl flex="1" m={4}>
+          <FormControl isInvalid={apellidoError !== ''} flex="1" m={4}>
             <FormLabel>Apellido</FormLabel>
             <Input onChange={handleChange} name="apellido" type="text" />
+            {apellidoError && <FormErrorMessage>{apellidoError}</FormErrorMessage>}
           </FormControl>
         </Flex>
         <Flex>
@@ -188,9 +228,10 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
             <Input onChange={handleChange} name="email" type="email" />
             {emailError && <FormErrorMessage>{emailError}</FormErrorMessage>}
           </FormControl>
-          <FormControl flex="1" m={4}>
+          <FormControl isInvalid={telefonoError !== ''} flex="1" m={4}>
             <FormLabel>Número de Teléfono</FormLabel>
             <Input onChange={handleChange} name="numero_telefono" type="text" />
+            {telefonoError && <FormErrorMessage>{telefonoError}</FormErrorMessage>}
           </FormControl>
           <Box flex="1" m={4}></Box>
         </Flex>

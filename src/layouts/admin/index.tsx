@@ -71,7 +71,7 @@ export default function Admin(props: { [x: string]: any }) {
       {/* Main Content */}
       <main
         className={`mx-[12px] h-full flex-none transition-all md:pr-2 ${
-          open ? 'ml-16' : 'ml-16'
+          open ? 'ml-4' : 'ml-16'
         }`}
       >
         {/* Routes */}

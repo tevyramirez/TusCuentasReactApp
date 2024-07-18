@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@chakra-ui/hooks": "^2.1.4",
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/modal": "^2.2.9",
     "@chakra-ui/popover": "^2.1.8",
     "@chakra-ui/portal": "^2.0.15",

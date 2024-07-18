@@ -26,7 +26,7 @@ const PropietariosDashboard: React.FC = () => {
         "Nombre": item.razon_social ? item.razon_social : `${item.nombre}`,
         "Apellidos": item.apellido,
         "Email": item.email,
-        "Numero de Telefono": item.numero_telefono,
+        "Telefono": item.numero_telefono,
        
       }));
       setPropietarios(dataMapped);
@@ -57,7 +57,7 @@ const PropietariosDashboard: React.FC = () => {
     setFilteredPropietarios(filteredData);
   };
   
-  const handleFilterChange = (newFilters: { search?: string, razonSocial?: string, email?: string }) => {
+  const handleFilterChange = (newFilters: { search?: string, email?: string }) => {
     setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
     applyFilters(propietarios, { ...filters, ...newFilters });
   };
@@ -78,7 +78,7 @@ const PropietariosDashboard: React.FC = () => {
         apellido: updatedData.Apellidos,
         rut: updatedData.Rut,
         email: updatedData.Email,
-        numero_telefono: updatedData["Numero de Telefono"],
+        numero_telefono: updatedData["Telefono"],
         razon_social: updatedData["Razon Social"],
       }
       await axios.put(`${API_ADDRESS}propietarios/${formatedData.id}/`, formatedData);

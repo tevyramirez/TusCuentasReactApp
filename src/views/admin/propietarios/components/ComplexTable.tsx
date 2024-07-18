@@ -94,13 +94,18 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
   const columns = Object.keys(firstRow).filter(key => !hiddenColumns.includes(key)).map((key) =>
     columnHelper.accessor(key, {
       id: key,
-      header: () => <Th>{key}</Th>,
+      header: () => {
+        // Evita que se cree la columna razon social, por ahora no se necesita
+      if (key === "Razon Social"){
+        return ""}
+      else{
+      return <Th style={{ margin:"1px",padding: "1px", minWidth: "20px", maxWidth: "120px", fontSize:"12px" }}>{key}</Th>}},
       cell: (info) => {
         const value = info.getValue();
         if (key === "Propiedades2") {
           const units = value.split(", ");
           return (
-            <Select>
+            <Select style={{ padding: "2px", minWidth: "80px", maxWidth: "150px" }}>
               <option value="">Selecciona</option>
               {units.map((unit: string, index: number) => (
                 <option key={index} value={unit.trim()}>
@@ -109,8 +114,13 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
               ))}
             </Select>
           );
-        } else {
-          return <Td>{value}</Td>;
+        } 
+        if (key === "Razon Social"){
+          return " "
+        }
+
+        else {
+          return <Td style={{ margin:"1px",padding: "1px", minWidth: "20px", maxWidth: "150px", fontSize:"11px" }}>{value}</Td>;
         }
       },
     })
@@ -123,17 +133,26 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
       cell: (info) => (
         <Flex>
           <IconButton
+            isRound={true}
             aria-label="Ver"
+            style={{padding: "2px", margin:"1px",fontSize: "12px"}}
+            size="sm"
             icon={<MdVisibility />}
             onClick={() => openModal(info.row.original)} // Abrir modal con la data del propietario
           />
           <IconButton
+          isRound={true}
+          size="sm"
             aria-label="Editar"
+            style={{padding: "2px", margin:"1px",fontSize: "12px"}}
             icon={<MdEdit />}
             onClick={() => openEditModal(info.row.original)} // Abrir modal de edición con la data del propietario
           />
           <IconButton
+          isRound={true}
+          size="sm"
             aria-label="Eliminar"
+            style={{padding: "2px", margin:"1px",fontSize: "12px"}}
             icon={<MdDelete />}
             onClick={() => openConfirmModal(info.row.original["ID Propietario"])} // Abrir modal de confirmación con el id del propietario
           />
