@@ -84,7 +84,9 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
   };
 
   const handleDelete = () => {
+    console.log("out")
     if (deleteId) {
+      console.log("in")
       onDelete(deleteId);
       closeConfirmModal();
     }
@@ -120,7 +122,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
         }
 
         else {
-          return <Td style={{ margin:"1px",padding: "1px", minWidth: "20px", maxWidth: "150px", fontSize:"11px" }}>{value}</Td>;
+          return <Td style={{ margin:"1px",padding: "1px", minWidth: "20px", maxWidth: "150px", fontSize:"14px" }}>{value}</Td>;
         }
       },
     })
@@ -135,7 +137,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
           <IconButton
             isRound={true}
             aria-label="Ver"
-            style={{padding: "2px", margin:"1px",fontSize: "12px"}}
+            style={{padding: "2px", margin:"1px",fontSize: "13px"}}
             size="sm"
             icon={<MdVisibility />}
             onClick={() => openModal(info.row.original)} // Abrir modal con la data del propietario
@@ -144,7 +146,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
           isRound={true}
           size="sm"
             aria-label="Editar"
-            style={{padding: "2px", margin:"1px",fontSize: "12px"}}
+            style={{padding: "2px", margin:"1px",fontSize: "13px"}}
             icon={<MdEdit />}
             onClick={() => openEditModal(info.row.original)} // Abrir modal de edición con la data del propietario
           />
@@ -152,9 +154,9 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
           isRound={true}
           size="sm"
             aria-label="Eliminar"
-            style={{padding: "2px", margin:"1px",fontSize: "12px"}}
+            style={{padding: "2px", margin:"1px",fontSize: "13px"}}
             icon={<MdDelete />}
-            onClick={() => openConfirmModal(info.row.original["ID Propietario"])} // Abrir modal de confirmación con el id del propietario
+            onClick={() => openConfirmModal(info.row.original["ID"])} // Abrir modal de confirmación con el id del propietario
           />
         </Flex>
       ),

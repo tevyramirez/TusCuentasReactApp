@@ -11,8 +11,10 @@ const Dashboard: React.FC = () => {
   console.log("Propietarios test");
   const toast = useToast();
   const [propietarios, setPropietarios] = React.useState([]);
+  const [filteredGastos, setFilteredGastos] = useState([]);
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
-  const hiddenColumns = ["ID Gastos", "ID Categoria"]
+  const [filters, setFilters] = useState({ search: '', email: '' });
+  const hiddenColumns = ["ID", "ID Categoria"]
 
   const obtenerData = async () => {
     try {
@@ -22,7 +24,7 @@ const Dashboard: React.FC = () => {
       console.log(data);
       const dataMapped = data.data.map((item: any) => (
         {
-          "ID Gastos": item.id_gasto,
+          "ID": item.id_gasto,
           "ID Categoria": item.categoria,
           "Categoria": item.categoria_nombre,
           "Proveedor": item.proveedor_nombre + " " + item.proveedor_apellido,
@@ -34,6 +36,7 @@ const Dashboard: React.FC = () => {
       ));
       console.log(dataMapped);
       setPropietarios(dataMapped);
+      applyFilters(dataMapped, filters);
     } catch (error) {
       console.error("Error al obtener los propietarios:", error);
     }
@@ -51,7 +54,7 @@ const Dashboard: React.FC = () => {
     try {
       console.log(updatedData)
       let formatedData = {
-        id: updatedData["ID Gastos"],
+        id: updatedData["ID"],
         categoria: updatedData["ID Categoria"],
         categoria_nombre: updatedData.Categoria,
         proveedor_nombre: updatedData.Proveedor,
@@ -79,6 +82,7 @@ const Dashboard: React.FC = () => {
     }
   }
   const handleDeleteGastos = async (id: string) => {
+    console.log("Testing")
     try {
       await axios.delete(`${API_ADDRESS}gastos/${id}/`);
       obtenerData();
@@ -98,7 +102,28 @@ const Dashboard: React.FC = () => {
       })
     }
   }
-
+  const applyFilters = (data: any, filters: { search?: string, email?: string }) => {
+    let filteredData = data;
+    console.log(filteredData)
+    if (filters.search) {
+      filteredData = filteredData.filter((item: any) => {
+        return Object.values(item).some((value: any) => {
+          console.log(value)
+          return value.toString().toLowerCase().includes(filters.search!.toLowerCase());
+        });
+      });
+    }
+    if (filters.email) {
+      filteredData = filteredData.filter((item: any) => {
+        return item.email.toLowerCase().includes(filters.email!.toLowerCase());
+      });
+    }
+    setFilteredGastos(filteredData);
+  }
+  const handleFilterChange = (newFilters: { search?: string, email?: string }) => {
+    setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
+    applyFilters(propietarios, { ...filters, ...newFilters });
+  };
   React.useEffect(() => {
     obtenerData();
   }, []);
@@ -109,9 +134,9 @@ const Dashboard: React.FC = () => {
       <div className="mt-5 grid grid-cols-1 gap-5">
         {!showAddPropietario && (
           <>
-            <FilterBar onAddPropietario={handleAddPropietario} />
+            <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange}/>
             <ComplexTable
-              tableData={propietarios}
+              tableData={filteredGastos}
               onDelete={handleDeleteGastos}
               onUpdate={handleUpdateGastos}
               hiddenColumns={hiddenColumns}

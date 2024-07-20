@@ -11,14 +11,14 @@ const PropietariosDashboard: React.FC = () => {
   const [filteredPropietarios, setFilteredPropietarios] = useState([]);
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
   const [filters, setFilters] = useState({ search: '', razonSocial: '', email: '' });
-  const hiddenColumns = ["ID Propietario"]
+  const hiddenColumns = ["ID"]
   const toast = useToast();
 
   const obtenerData = async () => {
     try {
       const response = await axios.get(`${API_ADDRESS}propietarios/`);
       const dataMapped = response.data.map((item: any) => ({
-        "ID Propietario": item.id,
+        "ID": item.id,
         "Propiedades": item.lotes.map((lote: any) => `${lote.lote.numero_unidad}`).join(", "),
         "Rol": item.lotes.map((lote:any) =>`${lote.tipo_relacion}`),
         "Rut": item.rut,
@@ -42,11 +42,6 @@ const PropietariosDashboard: React.FC = () => {
       filteredData = filteredData.filter((prop: any) => 
         prop.Nombre.toLowerCase().includes(filters.search.toLowerCase()) ||
         prop.Rut.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-    if (filters.razonSocial) {
-      filteredData = filteredData.filter((prop: any) => 
-        prop["Razon Social"] && prop["Razon Social"].toLowerCase().includes(filters.razonSocial.toLowerCase())
       );
     }
     if (filters.email) {
@@ -73,7 +68,7 @@ const PropietariosDashboard: React.FC = () => {
   const handleUpdatePropietario = async (updatedData: any) => {
     try {
       let formatedData = {
-        id: updatedData["ID Propietario"],
+        id: updatedData["ID"],
         nombre: updatedData.Nombre,
         apellido: updatedData.Apellidos,
         rut: updatedData.Rut,

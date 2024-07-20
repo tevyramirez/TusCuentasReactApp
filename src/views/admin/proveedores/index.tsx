@@ -1,4 +1,4 @@
-import React, {  useState } from "react";
+import React, {  useState, useEffect } from "react";
 import ComplexTable from "views/admin/propietarios/components/ComplexTable";
 import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddProveedor";
@@ -11,8 +11,10 @@ const Dashboard: React.FC = () => {
   console.log("Propietarios test");
   const toast = useToast();
   const [propietarios, setPropietarios] = React.useState([]);
+  const [filteredPropietarios, setFilteredPropietarios] = useState([]);
+  const [filters, setFilters] = useState({ search: '', razonSocial: '', email: '' });
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
-  const hiddenColumns = ["ID Propietario"]
+  const hiddenColumns = ["ID"]
 
   const obtenerData = async () => {
     try {
@@ -21,7 +23,7 @@ const Dashboard: React.FC = () => {
       console.log(data);
       const dataMapped = data.data.map((item: any) => (
         {
-          "ID Propietario": item.id_proveedor,
+          "ID": item.id_proveedor,
           "Rut":item.rut,
           "Nombre": item.nombre,
           "Apellido": item.apellido,
@@ -31,9 +33,37 @@ const Dashboard: React.FC = () => {
       }));
       console.log(dataMapped);
       setPropietarios(dataMapped);
+      applyFilters(dataMapped, filters);
     } catch (error) {
-      console.error("Error al obtener los propietarios:", error);
+      console.error("Error al obtener los proveedores:", error);
     }
+  };
+
+  const applyFilters = (data: any[], filters: { search: string, razonSocial: string, email: string }) => {
+    let filteredData = data;
+    console.log(filteredData)
+    if (filters.search) {
+      console.log(filters.search)
+      filteredData = filteredData.filter((prop: any) => {
+        return Object.values(prop).some((value: any) => {
+          console.log(value)
+          if (value !== null) {
+          return value.toString().toLowerCase().includes(filters.search!.toLowerCase());
+        }});
+      });
+    }
+    if (filters.email) {
+      filteredData = filteredData.filter((prop: any) => 
+        prop.Email.toLowerCase().includes(filters.email.toLowerCase())
+      );
+    }
+    setFilteredPropietarios(filteredData);
+    console.log("datos filtrados", filteredData)
+  };
+
+  const handleFilterChange = (newFilters: { search?: string, email?: string }) => {
+    setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
+    applyFilters(propietarios, { ...filters, ...newFilters });
   };
 
   const handleAddPropietario = () => {
@@ -52,7 +82,7 @@ const Dashboard: React.FC = () => {
     try {
       console.log(updatedData)
       let formatedData = {
-        id: updatedData["ID Propietario"],
+        id: updatedData["ID"],
         nombre: updatedData.Nombre,
         apellido: updatedData.Apellido,
         rut: updatedData.Rut,
@@ -98,16 +128,18 @@ const Dashboard: React.FC = () => {
       })
     }
   };
-
+  useEffect(() => {
+    obtenerData();
+  }, []);
   return (
     <>
       
         <div className="mt-5 grid grid-cols-1 gap-5">
           {!showAddPropietario && (
             <>
-              <FilterBar onAddPropietario={handleAddPropietario} />
+              <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} />
               <ComplexTable 
-              tableData={propietarios} 
+              tableData={filteredPropietarios} 
               onUpdate={handleUpdatePropietario} 
               onDelete={handleDeletePropietario}
               hiddenColumns={hiddenColumns}/>
