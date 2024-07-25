@@ -228,13 +228,15 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
 
   const handleFileUpload = async (gastoId: number) => {
     if (selectedFile) {
+      console.log("Subiendo archivo2...");
       const formData = new FormData();
       formData.append('file', selectedFile);
-
+      console.log(formData);
       try {
         await axios.post(`${API_ADDRESS}gastos/${gastoId}/upload/`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            'Content-Disposition': 'attachment; filename=' + selectedFile.name,
           },
         });
         toast({
@@ -329,6 +331,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
         const gastoId = response.data.id_gasto;
 
         if (selectedFile) {
+          console.log("Subiendo archivo...");
           await handleFileUpload(gastoId);
         }
 
