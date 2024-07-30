@@ -1,9 +1,9 @@
 import React from "react";
 import MainDashboard from "views/admin/maindashboard";
-import Lote from "views/admin/lote"
 import Proveedores from "views/admin/proveedores";
 import GastosComunes from "views/admin/gastos";
 import Propietarios from "views/admin/propietarios"
+import Recaudaciones from "views/admin/recaudaciones";
 import { FaCashRegister } from "react-icons/fa6";
 import SignIn from "views/auth/SignIn";
 import {
@@ -11,7 +11,8 @@ import {
   MdLock,
   MdEmojiPeople,
 
-  MdPeople
+  MdPeople,
+  MdOutlineAttachMoney
 } from "react-icons/md";
 
 const routes = [
@@ -49,6 +50,13 @@ const routes = [
     path: "gastoscomunes",
     icon: <FaCashRegister className="h-6 w-6" />,
     component: <GastosComunes />,
+  },
+  {
+    name: "Recaudaciones",
+    layout: "/admin",
+    path: "recaudaciones",
+    icon: <MdOutlineAttachMoney className="h-6 w-6" />,
+    component: <Recaudaciones />,
   },
   {
     name: "Propietarios",

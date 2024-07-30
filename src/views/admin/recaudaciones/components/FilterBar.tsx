@@ -13,17 +13,17 @@ import {
   MenuList,
   MenuItem,
 } from "@chakra-ui/react";
-import { AddIcon, SearchIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import { AddIcon, DownloadIcon, SearchIcon, ChevronDownIcon } from "@chakra-ui/icons";
 
 interface FilterBarProps {
   onAddPropietario: () => void;
   onFilterChange: (filters: any) => void;
-  onExport: () => void;
+  onExport: () => void; // Añade esta prop
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({ onAddPropietario, onFilterChange, onExport }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("Nombre o Rut");
+  const [filterType, setFilterType] = useState("Todos los campos");
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -44,7 +44,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onAddPropietario, onFilterChange,
           </InputLeftElement>
           <Input
             type="text"
-            placeholder={`Buscar por ${filterType}`}
+            placeholder={`Buscar por ${filterType.toLowerCase()}`}
             value={searchTerm}
             onChange={handleSearchChange}
             borderRadius="md"
@@ -74,10 +74,13 @@ const FilterBar: React.FC<FilterBarProps> = ({ onAddPropietario, onFilterChange,
           leftIcon={<AddIcon />}
           colorScheme="blue"
           onClick={onAddPropietario}
+          pl="8"
+          pr="8"
         >
-          Propietario
+          Recaudación
         </Button>
-        <Button onClick={onExport} colorScheme="green">Exportar</Button>
+        <Button leftIcon={<DownloadIcon />} onClick={onExport} colorScheme="green" pl="8"
+          pr="8">Exportar</Button>
       </Stack>
     </Box>
   );

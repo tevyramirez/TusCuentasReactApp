@@ -15,26 +15,55 @@ type RowObj = {
   [key: string]: any;
 };
 
-export default function ComplexTable(props: { tableData: any[] }) {
+
+// const columns = columnsDataCheck;
+export default function ComplexTable(props: { tableData: any }) {
   const { tableData } = props;
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
   const columnHelper = createColumnHelper<RowObj>();
 
-  // Obtener las claves del primer objeto de datos
-  const firstRow = tableData.length > 0 ? tableData[0] : {};
+  const firstRow = tableData.length > 1 ? tableData[1] : {};
+
   const columns = Object.keys(firstRow).map((key) =>
     columnHelper.accessor(key, {
       id: key,
-      header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">{key}</p>
-      ),
-      cell: (info) => (
-        <p className="text-sm font-bold text-navy-700 dark:text-white">
-          {info.getValue()}
-        </p>
-      ),
+      header: () => {
+        if (key === "ID Propietario") {
+          return null; // Si es "ID Propietario", retornar null para omitir la renderización
+        } else {
+          return (
+            <p className="text-sm font-bold text-gray-600 dark:text-white">{key}</p>
+          );
+        }
+      },
+      cell: (info) => {
+        const value = info.getValue();
+        if (key === 'Propiedades') {
+          const units = value.split(', '); // Dividir la cadena por comas y espacio
+          return (
+            <select className="select-dropdown m-2">
+              <option>Selecciona</option>
+              {units.map((unit: string, index: number) => (
+                <option key={index} value={unit.trim()}>{unit.trim()}</option>
+              ))}
+            </select>
+          );
+
+        }
+        else if (key === "ID Propietario") {// Dividir la cadena por comas y espacio
+          return null;
+        }
+        else {
+          return (
+            <p className="text-sm font-bold text-navy-700 dark:text-white">
+              {value}
+            </p>
+          );
+        }
+      },
+
     })
   );
 
@@ -47,9 +76,15 @@ export default function ComplexTable(props: { tableData: any[] }) {
           Acciones
         </p>
       ),
-      cell: () => (
+      cell: (info) => (
         <div className="flex">
-          <button className="mx-1 text-gray-600 dark:text-white">
+          <button
+            className="mx-1 text-gray-600 dark:text-white"
+            value={info.row.original.id}
+          >
+            Ver ID
+          </button>
+          <button className="mx-1 text-gray-600 dark:text-white" value={info.row.original.id}>
             <MdVisibility />
           </button>
           <button className="mx-1 text-gray-600 dark:text-white">
@@ -62,13 +97,12 @@ export default function ComplexTable(props: { tableData: any[] }) {
       ),
     })
   );
-
+  // eslint-disable-next-line
   React.useEffect(() => {
     if (tableData && tableData.length > 0) {
       setIsLoading(false);
     }
   }, [tableData]);
-
   const table = useReactTable({
     data: tableData,
     columns,
@@ -80,9 +114,9 @@ export default function ComplexTable(props: { tableData: any[] }) {
     getSortedRowModel: getSortedRowModel(),
     debugTable: true,
   });
-
   return (
     <Card extra={"w-full h-full px-6 pb-6 sm:overflow-x-auto"}>
+
       <div className="mt-8 overflow-x-scroll xl:overflow-x-hidden">
         <table className="w-full">
           <thead>

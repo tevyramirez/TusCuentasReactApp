@@ -5,6 +5,7 @@ import AddPropietario from "./components/AddProveedor";
 import axios from 'axios'
 import {API_ADDRESS} from '../../../variables/apiSettings'
 import { useToast } from '@chakra-ui/react';
+import * as XLSX from "xlsx"
 
 
 const Dashboard: React.FC = () => {
@@ -128,6 +129,12 @@ const Dashboard: React.FC = () => {
       })
     }
   };
+  const exportToXLS = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredPropietarios);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Proveedores");
+    XLSX.writeFile(workbook, "Proveedores.xlsx");
+  };
   useEffect(() => {
     obtenerData();
   }, []);
@@ -137,7 +144,7 @@ const Dashboard: React.FC = () => {
         <div className="mt-5 grid grid-cols-1 gap-5">
           {!showAddPropietario && (
             <>
-              <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} />
+              <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} onExport={exportToXLS} />
               <ComplexTable 
               tableData={filteredPropietarios} 
               onUpdate={handleUpdatePropietario} 

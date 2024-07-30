@@ -18,9 +18,10 @@ import { AddIcon, SearchIcon, ChevronDownIcon } from "@chakra-ui/icons";
 interface FilterBarProps {
   onAddPropietario: () => void;
   onFilterChange: (filters: any) => void;
+  onExport: () => void;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ onAddPropietario, onFilterChange }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ onAddPropietario, onFilterChange, onExport }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("Todos los campos");
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +76,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onAddPropietario, onFilterChange 
         >
           Proveedor
         </Button>
+        <Button onClick={onExport} colorScheme="green">Exportar</Button>
       </Stack>
     </Box>
   );

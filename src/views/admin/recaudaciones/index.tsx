@@ -39,7 +39,7 @@ const Dashboard: React.FC = () => {
       setPropietarios(dataMapped);
       applyFilters(dataMapped, filters);
     } catch (error) {
-      console.error("Error al obtener los propietarios:", error);
+      console.error("Error al obtener las recaudaciones:", error);
     }
   };
 
@@ -73,9 +73,9 @@ const Dashboard: React.FC = () => {
         isClosable: true,
       })
     } catch (error) {
-      console.error("Error al actualizar el propietario:", error);
+      console.error("Error al actualizar la recaudacion:", error);
       toast({
-        title: "Error al actualizar el gasto",
+        title: "Error al actualizar el pago",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -94,9 +94,9 @@ const Dashboard: React.FC = () => {
         isClosable: true,
       })
     } catch (error) {
-      console.error("Error al eliminar el propietario:", error);
+      console.error("Error al eliminar:", error);
       toast({
-        title: "Error al eliminar el gasto",
+        title: "Error al eliminar",
         status: "error",
         duration: 3000,
         isClosable: true,

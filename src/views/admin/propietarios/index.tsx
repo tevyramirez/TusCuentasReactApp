@@ -5,6 +5,7 @@ import AddPropietario from "./components/AddPropietario";
 import axios from 'axios';
 import { API_ADDRESS } from '../../../variables/apiSettings';
 import { useToast } from '@chakra-ui/react';
+import * as XLSX from 'xlsx'; // Importa la biblioteca
 
 const PropietariosDashboard: React.FC = () => {
   const [propietarios, setPropietarios] = useState([]);
@@ -31,6 +32,7 @@ const PropietariosDashboard: React.FC = () => {
       }));
       setPropietarios(dataMapped);
       applyFilters(dataMapped, filters);
+      setFilteredPropietarios(dataMapped);
     } catch (error) {
       console.error("Error al obtener los propietarios:", error);
     }
@@ -115,6 +117,13 @@ const PropietariosDashboard: React.FC = () => {
       });
     }
   };
+  const exportToXLS = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredPropietarios);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Propietarios");
+    XLSX.writeFile(workbook, "Propietarios.xlsx");
+  };
+
 
   useEffect(() => {
     obtenerData();
@@ -124,7 +133,7 @@ const PropietariosDashboard: React.FC = () => {
     <div className="mt-5 grid grid-cols-1 gap-5">
       {!showAddPropietario && (
         <>
-          <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} />
+          <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} onExport={exportToXLS}/>
           <ComplexTable
             tableData={filteredPropietarios}
             onUpdate={handleUpdatePropietario}
