@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ComplexTable from "views/admin/propietarios/components/ComplexTable";
+import ComplexTable from "views/components/ComplexTable";
 import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddGastos";
 import axios from 'axios'
@@ -9,7 +9,7 @@ import { useToast } from '@chakra-ui/react';
 import * as XLSX from 'xlsx'; // Importa la biblioteca
 
 const Dashboard: React.FC = () => {
-  console.log("Propietarios test");
+  console.log("recaudaciones test");
   const toast = useToast();
   const [propietarios, setPropietarios] = React.useState([]);
   const [filteredGastos, setFilteredGastos] = useState([]);
@@ -19,9 +19,9 @@ const Dashboard: React.FC = () => {
 
   const obtenerData = async () => {
     try {
-      const data = await axios.get(API_ADDRESS + "gastos/");
+      const data = await axios.get(API_ADDRESS + "recaudaciones/");
 
-      console.log("DATA PROVEEDORES");
+      console.log("DATA recaudaciones");
       console.log(data);
       const dataMapped = data.data.map((item: any) => (
         {
@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
         metodo_pago: updatedData["Metodo Pago"],
         descripcion: updatedData.Descripcion,
       }
-      await axios.put(`${API_ADDRESS}gastos/${formatedData.id}/`, formatedData);
+      await axios.put(`${API_ADDRESS}recaudaciones/${formatedData.id}/`, formatedData);
       obtenerData();
       toast({
         title: "Gasto actualizado",

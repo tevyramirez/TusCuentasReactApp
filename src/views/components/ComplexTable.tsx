@@ -24,9 +24,9 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import ViewModal from "./ViewModal";
-import EditModal from "./EditModal";
-import ConfirmModal from "./ConfirmModal";
+import ViewModal from "../admin/propietarios/components/ViewModal";
+import EditModal from "../admin/propietarios/components/EditModal";
+import ConfirmModal from "../admin/propietarios/components/ConfirmModal";
 
 type RowObj = {
   [key: string]: any;

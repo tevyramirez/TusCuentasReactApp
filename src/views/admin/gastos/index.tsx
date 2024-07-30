@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ComplexTable from "views/admin/propietarios/components/ComplexTable";
+import ComplexTable from "views/components/ComplexTable";
 import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddGastos";
 import axios from 'axios'
