@@ -6,6 +6,7 @@ import axios from 'axios'
 import {API_ADDRESS} from '../../../variables/apiSettings'
 import { useToast } from '@chakra-ui/react';
 import * as XLSX from "xlsx"
+import NoDataMessage from "views/components/NoDataMessage"
 
 
 const Dashboard: React.FC = () => {
@@ -145,11 +146,12 @@ const Dashboard: React.FC = () => {
           {!showAddPropietario && (
             <>
               <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} onExport={exportToXLS} />
-              <ComplexTable 
+              {propietarios.length >0 ?  <ComplexTable 
               tableData={filteredPropietarios} 
               onUpdate={handleUpdatePropietario} 
               onDelete={handleDeletePropietario}
-              hiddenColumns={hiddenColumns}/>
+              hiddenColumns={hiddenColumns}
+            /> : <NoDataMessage/>}
             </>
           )}
           {showAddPropietario && (

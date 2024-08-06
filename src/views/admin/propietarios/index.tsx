@@ -6,6 +6,7 @@ import axios from 'axios';
 import { API_ADDRESS } from '../../../variables/apiSettings';
 import { useToast } from '@chakra-ui/react';
 import * as XLSX from 'xlsx'; // Importa la biblioteca
+import NoDataMessage from "views/components/NoDataMessage"
 
 const PropietariosDashboard: React.FC = () => {
   const [propietarios, setPropietarios] = useState([]);
@@ -33,6 +34,7 @@ const PropietariosDashboard: React.FC = () => {
       setPropietarios(dataMapped);
       applyFilters(dataMapped, filters);
       setFilteredPropietarios(dataMapped);
+      console.log(propietarios)
     } catch (error) {
       console.error("Error al obtener los propietarios:", error);
     }
@@ -134,12 +136,12 @@ const PropietariosDashboard: React.FC = () => {
       {!showAddPropietario && (
         <>
           <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} onExport={exportToXLS}/>
-          <ComplexTable
+          {propietarios.length >0 ? <ComplexTable
             tableData={filteredPropietarios}
             onUpdate={handleUpdatePropietario}
             onDelete={handleDeletePropietario}
             hiddenColumns={hiddenColumns}
-          />
+          /> : <NoDataMessage/>}
         </>
       )}
       {showAddPropietario && (

@@ -7,6 +7,7 @@ import { API_ADDRESS } from '../../../variables/apiSettings'
 import { capitalize } from 'lodash';
 import { useToast } from '@chakra-ui/react';
 import * as XLSX from 'xlsx'; // Importa la biblioteca
+import NoDataMessage from "views/components/NoDataMessage"
 
 const Dashboard: React.FC = () => {
   console.log("Propietarios test");
@@ -144,12 +145,12 @@ const Dashboard: React.FC = () => {
         {!showAddPropietario && (
           <>
             <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} onExport={exportToXLS}/>
-            <ComplexTable
+            {propietarios.length >0 ? <ComplexTable
               tableData={filteredGastos}
               onDelete={handleDeleteGastos}
               onUpdate={handleUpdateGastos}
               hiddenColumns={hiddenColumns}
-            />
+              /> : <NoDataMessage/>}
           </>
         )}
         {showAddPropietario && (

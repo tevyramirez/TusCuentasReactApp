@@ -66,10 +66,14 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   useEffect(() => {
     fetchPeriodos();
+    console.log(periodos)
   }, []);
+  function capitalizeFirstLetter(string : string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
   const optionsMeses = [...new Set(periodos.map(periodo => new Date(periodo.fecha_inicio).getMonth()))].map(month => {
-    return <option key={month} value={month + 1}>{new Date(0, month).toLocaleString('default', { month: 'long' })}</option>;
+    return <option key={month} value={month + 1}>{capitalizeFirstLetter(new Date(0, month).toLocaleString('es-ES', { month: 'long' }))}</option>;
   });
 
   const uniqueYears = [...new Set(periodos.map(periodo => new Date(periodo.fecha_inicio).getFullYear()))];
@@ -121,12 +125,15 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
   const handleConfirmAction = () => {
     if (periodos.length > 0) {
       const estado = periodos[0].estado;
-      if (estado === "cerrado") {
+      if (estado === "cerrado" || estado) {
         abrirPeriodo();
       } else {
         cerrarPeriodo(periodos[0].id_periodo);
       }
     }
+    if (periodos.length === 0) {
+      abrirPeriodo();
+    };
     handleClose();
   };
 
@@ -177,7 +184,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
                               onClick={handleOpen}
                               colorScheme="blue"
                             >
-                              {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' ? 'Abrir Periodo' : 'Cerrar Periodo'}
+                              {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' || periodos.length === 0 ? 'Abrir Periodo' : 'Cerrar Periodo'}
                             </Button>
                           </PopoverTrigger>
                           <Portal>
