@@ -16,33 +16,27 @@ interface Proveedor {
   apellido: string;
   telefono: string;
   email: string;
-  categoriaServicio: Categoria;
-}
-
-interface Categoria {
-  id_categoria: number;
-  nombre: string;
-  descripcion: string;
+  servicio: string;
 }
 
 const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
   const [proveedor, setProveedor] = useState<Proveedor>({
-    categoriaServicio: { id_categoria: 0, nombre: '', descripcion: '' },
     nombre: '',
     apellido: '',
     rut: '',
     email: '',
     telefono: '',
+    servicio: '',
   });
 
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  
   const [errors, setErrors] = useState({
     rut: '',
     nombre: '',
     apellido: '',
     telefono: '',
     email: '',
-    categoriaServicio: ''
+    servicio: '',
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const toast = useToast();
@@ -56,21 +50,9 @@ const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
     }));
   };
 
-  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCategoriaId = parseInt(e.target.value);
-    const selectedCategoria = categorias.find(categoria => categoria.id_categoria === selectedCategoriaId);
-
-    if (selectedCategoria) {
-      setProveedor(prevState => ({
-        ...prevState,
-        categoriaServicio: selectedCategoria,
-      }));
-    }
-  };
-
   const validate = () => {
     let valid = true;
-    let newErrors = { rut: '', nombre: '', apellido: '', telefono: '', email: '', categoriaServicio: '' };
+    let newErrors = { rut: '', nombre: '', apellido: '', telefono: '', email: '', servicio:'' };
 
     if (!proveedor.rut) {
       newErrors.rut = 'El RUT es obligatorio';
@@ -97,11 +79,6 @@ const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
       valid = false;
     }
 
-    if (!proveedor.categoriaServicio.id_categoria) {
-      newErrors.categoriaServicio = 'La categoría es obligatoria';
-      valid = false;
-    }
-
     setErrors(newErrors);
     return valid;
   };
@@ -115,8 +92,8 @@ const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
           apellido: proveedor.apellido,
           telefono: proveedor.telefono,
           email: proveedor.email,
-          categoriaServicio: proveedor.categoriaServicio.id_categoria,
-        };
+          servicio: proveedor.servicio,
+        };  
 
         const response = await axios.post(API_ADDRESS + 'proveedores/', dataToSend);
         console.log('Proveedor creado:', response.data);
@@ -147,12 +124,12 @@ const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
   const handleAddAnother = () => {
     setIsSubmitted(false);
     setProveedor({
-      categoriaServicio: { id_categoria: 0, nombre: '', descripcion: '' },
       nombre: '',
       apellido: '',
       rut: '',
       email: '',
       telefono: '',
+      servicio: '',
     });
     onClose();
   };
@@ -162,17 +139,7 @@ const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
     update();
   };
 
-  useEffect(() => {
-    async function fetchCategorias() {
-      try {
-        const response = await axios.get(API_ADDRESS + 'categorias-gastos/');
-        setCategorias(response.data);
-      } catch (error) {
-        console.error('Error al obtener las categorías:', error);
-      }
-    }
-    fetchCategorias();
-  }, []);
+
 
   return (
     <Card>
@@ -222,28 +189,13 @@ const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
         Información del servicio
       </Text>
       <Flex m={4}>
+       
         <Box flex="1" m={4}>
-          <FormControl isInvalid={!!errors.categoriaServicio}>
-            <FormLabel>Categoría</FormLabel>
-            <Select name="categoriaServicio" onChange={handleCategoriaChange} value={proveedor.categoriaServicio.id_categoria.toString()}>
-              <option value="">Seleccione una categoría</option>
-              {categorias.map(categoria => (
-                <option key={categoria.id_categoria} value={categoria.id_categoria}>
-                  {categoria.nombre}
-                </option>
-              ))}
-            </Select>
-            <FormErrorMessage>{errors.categoriaServicio}</FormErrorMessage>
+        <FormControl isInvalid={!!errors.telefono}>
+            <FormLabel>Descripción</FormLabel>
+            <Input name="servicio" value={proveedor.servicio} onChange={handleChange} />
+            <FormErrorMessage>{errors.servicio}</FormErrorMessage>
           </FormControl>
-        </Box>
-        <Box flex="1" m={4}>
-          <InputField
-            id="Descripcion"
-            label="Descripción"
-            extra="extra information"
-            placeholder="Descripción"
-            variant="standard"
-          />
         </Box>
       </Flex>
 

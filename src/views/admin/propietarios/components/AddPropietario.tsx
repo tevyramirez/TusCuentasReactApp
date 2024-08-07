@@ -207,30 +207,31 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
             <Input 
               onChange={handleChange} 
               name="rut" 
+              value={propietario.rut}
               type="text"
             />
             {rutError && <FormErrorMessage>{rutError}</FormErrorMessage>}
           </FormControl>
           <FormControl isInvalid={nombreError !== ''} flex="1" m={4}>
             <FormLabel>Nombre</FormLabel>
-            <Input onChange={handleChange} name="nombre" type="text" />
+            <Input onChange={handleChange} value={propietario.nombre} name="nombre" type="text" />
             {nombreError && <FormErrorMessage>{nombreError}</FormErrorMessage>}
           </FormControl>
           <FormControl isInvalid={apellidoError !== ''} flex="1" m={4}>
             <FormLabel>Apellido</FormLabel>
-            <Input onChange={handleChange} name="apellido" type="text" />
+            <Input onChange={handleChange} name="apellido" value={propietario.apellido} type="text" />
             {apellidoError && <FormErrorMessage>{apellidoError}</FormErrorMessage>}
           </FormControl>
         </Flex>
         <Flex>
           <FormControl isInvalid={emailError !== ''} flex="1" m={4}>
             <FormLabel>E-mail</FormLabel>
-            <Input onChange={handleChange} name="email" type="email" />
+            <Input onChange={handleChange} name="email" value={propietario.email} type="email" />
             {emailError && <FormErrorMessage>{emailError}</FormErrorMessage>}
           </FormControl>
           <FormControl isInvalid={telefonoError !== ''} flex="1" m={4}>
             <FormLabel>Número de Teléfono</FormLabel>
-            <Input onChange={handleChange} name="numero_telefono" type="text" />
+            <Input onChange={handleChange} name="numero_telefono" value={propietario.numero_telefono} type="text" />
             {telefonoError && <FormErrorMessage>{telefonoError}</FormErrorMessage>}
           </FormControl>
           <Box flex="1" m={4}></Box>
