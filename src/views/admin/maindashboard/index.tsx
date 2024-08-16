@@ -16,62 +16,17 @@ const Dashboard = () => {
 
   const [dataPieChart, setDataPieChart] = useState([])
   const [totalGastos, setTotalGastos] = useState([])
-  const data01 = [
-    {
-      "name": "Group A",
-      "value": 400
-    },
-    {
-      "name": "Group B",
-      "value": 300
-    },
-    {
-      "name": "Group C",
-      "value": 300
-    },
-    {
-      "name": "Group D",
-      "value": 200
-    },
-    {
-      "name": "Group E",
-      "value": 278
-    },
-    {
-      "name": "Group F",
-      "value": 189
-    }
-  ];
-  const data02 = [
-    {
-      "name": "Group A",
-      "value": 2400
-    },
-    {
-      "name": "Group B",
-      "value": 4567
-    },
-    {
-      "name": "Group C",
-      "value": 1398
-    },
-    {
-      "name": "Group D",
-      "value": 9800
-    },
-    {
-      "name": "Group E",
-      "value": 3908
-    },
-    {
-      "name": "Group F",
-      "value": 4800
-    }
-  ];
   const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  
   const dataFetchPie = async () => {
     try {
-      const data = await axios.get(API_ADDRESS + "gastos-por-categoria/");
+      let token = localStorage.getItem("access_token");
+      const data = await axios.get(API_ADDRESS + "gastos-por-categoria/", {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
       console.log("DATA DASHBOARD");
       console.log(data.data.gastos_por_categoria);
       setDataPieChart(data.data.gastos_por_categoria);
@@ -82,7 +37,11 @@ const Dashboard = () => {
   }
   const dataFetchGadgets = async () => {
     try {
-      const data = await axios.get(API_ADDRESS + "gastos-totales/");
+      const data = await axios.get(API_ADDRESS + "gastos-totales/", {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+      }});
       console.log("DATA GASTOS TOTALES");
       console.log(data.data)
       setTotalGastos(data.data.total_gastos);

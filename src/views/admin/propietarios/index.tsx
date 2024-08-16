@@ -18,7 +18,14 @@ const PropietariosDashboard: React.FC = () => {
 
   const obtenerData = async () => {
     try {
-      const response = await axios.get(`${API_ADDRESS}propietarios/`);
+      const response = await axios.get(`${API_ADDRESS}propietarios/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }
+      );
       const dataMapped = response.data.map((item: any) => ({
         "ID": item.id,
         "Propiedades": item.lotes.map((lote: any) => `${lote.lote.numero_unidad}`).join(", "),
@@ -80,7 +87,14 @@ const PropietariosDashboard: React.FC = () => {
         numero_telefono: updatedData["Telefono"],
         razon_social: updatedData["Razon Social"],
       }
-      await axios.put(`${API_ADDRESS}propietarios/${formatedData.id}/`, formatedData);
+      await axios.put(`${API_ADDRESS}propietarios/${formatedData.id}/`, formatedData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }
+      );
       obtenerData();
       toast ({
         title: "Propietario actualizado",
@@ -101,7 +115,14 @@ const PropietariosDashboard: React.FC = () => {
 
   const handleDeletePropietario = async (id: string) => {
     try {
-      await axios.delete(`${API_ADDRESS}propietarios/${id}/`);
+      await axios.delete(`${API_ADDRESS}propietarios/${id}/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }
+      );
       obtenerData();
       toast ({
         title: "Propietario eliminado",

@@ -20,7 +20,14 @@ const Dashboard: React.FC = () => {
 
   const obtenerData = async () => {
     try {
-      const data = await axios.get(API_ADDRESS+"proveedores/");
+      const data = await axios.get(API_ADDRESS+"proveedores/",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }
+      );
       console.log("DATA PROVEEDORES");
       console.log(data);
       const dataMapped = data.data.map((item: any) => (
@@ -91,7 +98,14 @@ const Dashboard: React.FC = () => {
         telefono: updatedData.Telefono,
         servicio: updatedData.Servicio,
       }
-      await axios.put(`${API_ADDRESS}proveedores/${formatedData.id}/`, formatedData);
+      await axios.put(`${API_ADDRESS}proveedores/${formatedData.id}/`, formatedData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+        }
+      }
+      );
       obtenerData();
       toast ({
         title: "Proveedor actualizado",
@@ -112,7 +126,12 @@ const Dashboard: React.FC = () => {
 
   const handleDeletePropietario = async (id: string) => {
     try {
-      await axios.delete(`${API_ADDRESS}proveedores/${id}/`);
+      await axios.delete(`${API_ADDRESS}proveedores/${id}/`,{
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+        }
+      });
       obtenerData();
       toast ({
         title: "Propietario eliminado",

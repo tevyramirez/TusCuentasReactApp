@@ -20,7 +20,12 @@ const Dashboard: React.FC = () => {
 
   const obtenerData = async () => {
     try {
-      const data = await axios.get(API_ADDRESS + "gastos/");
+      const data = await axios.get(API_ADDRESS + "gastos/",{
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+        }
+      });
 
       console.log("DATA PROVEEDORES");
       console.log(data);
@@ -65,7 +70,14 @@ const Dashboard: React.FC = () => {
         metodo_pago: updatedData["Metodo Pago"],
         descripcion: updatedData.Descripcion,
       }
-      await axios.put(`${API_ADDRESS}gastos/${formatedData.id}/`, formatedData);
+      await axios.put(`${API_ADDRESS}gastos/${formatedData.id}/`, formatedData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }
+      );
       obtenerData();
       toast({
         title: "Gasto actualizado",
@@ -86,7 +98,14 @@ const Dashboard: React.FC = () => {
   const handleDeleteGastos = async (id: string) => {
     console.log("Testing")
     try {
-      await axios.delete(`${API_ADDRESS}gastos/${id}/`);
+      await axios.delete(`${API_ADDRESS}gastos/${id}/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }
+      );
       obtenerData();
       toast({
         title: "Gasto eliminado",

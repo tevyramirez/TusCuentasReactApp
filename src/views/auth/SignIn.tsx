@@ -28,6 +28,7 @@ const SignIn: React.FC = () => {
         localStorage.setItem('access_token', data.access);  // Guardar el token
         login(data.access);
         console.log("Login successful");
+        console.log(data.access);
         
         window.location.href = '/admin'; // Redirigir al dashboard
       } else {

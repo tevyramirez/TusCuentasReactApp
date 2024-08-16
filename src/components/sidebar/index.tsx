@@ -44,7 +44,16 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const fetchPeriodos = async () => {
     try {
-      const response = await fetch(API_ADDRESS+"periodo/");
+      const token = localStorage.getItem("access_token");
+      console.log(token)
+      const response = await fetch(API_ADDRESS+"periodo/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+      });
+      console.log(response)
       const data = await response.json();
 
       const periodosAbiertos = data.filter((periodo: Periodo) => periodo.estado === "abierto");
@@ -90,10 +99,12 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const abrirPeriodo = async () => {
     try {
+      const token = localStorage.getItem("access_token");
       const response = await fetch(API_ADDRESS+"periodo/abrir/", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
       });
       const data = await response.json();
@@ -107,10 +118,12 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const cerrarPeriodo = async (periodoId: number) => {
     try {
+      let token = localStorage.getItem("access_token");
       const response = await fetch(`${API_ADDRESS}periodo/${periodoId}/cerrar/`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
       });
       const data = await response.json();
