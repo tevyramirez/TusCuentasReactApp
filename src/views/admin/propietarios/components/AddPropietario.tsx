@@ -40,7 +40,13 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(API_ADDRESS + 'lotes-disponibles/');
+        const response = await axios.get(API_ADDRESS + 'lotes-disponibles/',
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+            }
+          });
         setUnidades(response.data);
       } catch (error) {
         console.error('Error al obtener los datos de las unidades:', error);
@@ -149,13 +155,25 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
     }
 
     try {
-      const response = await axios.post(API_ADDRESS + 'propietarios/', propietario);
+      const response = await axios.post(API_ADDRESS + 'propietarios/', propietario,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        });
       const propietarioId = response.data.id; // Obtener el ID del propietario creado
       const data = {
         propietario: propietarioId, // ID del propietario que deseas asignar al lote
         tipo_relacion: relacionLote.tipo_relacion, // Tipo de relación (propietario, arrendatario, corredor)
       };
-      await axios.put(`${API_ADDRESS}asignar-relacion/${relacionLote.loteId}/`, data);
+      await axios.put(`${API_ADDRESS}asignar-relacion/${relacionLote.loteId}/`, data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        });
       toast({
         title: 'Éxito',
         description: 'Propietario creado y relación establecida con el lote.',
