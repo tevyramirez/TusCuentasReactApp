@@ -263,7 +263,12 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
   useEffect(() => {
     async function fetchCategorias() {
       try {
-        const response = await axios.get(API_ADDRESS + 'categorias-gastos/');
+        const response = await axios.get(API_ADDRESS + 'categorias-gastos/',{
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        });
         setCategorias(response.data);
       } catch (error) {
         console.error('Error al obtener las categorías:', error);
@@ -272,7 +277,12 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
 
     async function fetchProveedores() {
       try {
-        const response = await axios.get(API_ADDRESS + 'proveedores/');
+        const response = await axios.get(API_ADDRESS + 'proveedores/',{
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        });
         setProveedores(response.data);
       } catch (error) {
         console.error('Error al obtener los proveedores:', error);
@@ -281,7 +291,12 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
 
     async function fetchLotes() {
       try {
-        const response = await axios.get(API_ADDRESS + 'lotes/');
+        const response = await axios.get(API_ADDRESS + 'lotes/',{
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        });
         setLotes(response.data);
       } catch (error) {
         console.error('Error al obtener los lotes:', error);
@@ -289,7 +304,12 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
     }
     async function fetchPeriodo() {
       try {
-        const response = await axios.get(API_ADDRESS + 'periodo/');
+        const response = await axios.get(API_ADDRESS + 'periodo/',{
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+          }
+        });
         // Filtra el array para encontrar el periodo con estado "abierto"
         const periodoAbierto = response.data.find((periodo: Periodo) => periodo.estado === "abierto");
         // Si existe un periodo abierto, actualiza el estado con su ID

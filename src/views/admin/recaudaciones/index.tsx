@@ -1,22 +1,32 @@
 import React, { useState } from "react";
 import ComplexTable from "views/components/ComplexTable";
 import FilterBar from "./components/FilterBar";
-import AddPropietario from "./components/AddGastos";
+import AddPropietario from "./components/AddRecaudaciones";
 import axios from 'axios'
 import { API_ADDRESS } from '../../../variables/apiSettings'
 import { capitalize } from 'lodash';
 import { useToast } from '@chakra-ui/react';
-import * as XLSX from 'xlsx'; // Importa la biblioteca
+import * as XLSX from 'xlsx'; 
 import NoDataMessage from "views/components/NoDataMessage"
+
+interface Recaudacion{
+  "ID": number,
+  "Propietario_FK": number,
+  "Gasto_FK": number,
+  "Fecha": string,
+  "Monto": number,
+  "Metodo_Pago": string,
+  "Descripcion": string
+}
 
 const Dashboard: React.FC = () => {
   console.log("recaudaciones test");
   const toast = useToast();
-  const [propietarios, setPropietarios] = React.useState([]);
+  const [recaudaciones, setRecaudaciones] = React.useState([]);
   const [filteredGastos, setFilteredGastos] = useState([]);
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
   const [filters, setFilters] = useState({ search: '', email: '' });
-  const hiddenColumns = ["ID", "ID Categoria"]
+  const hiddenColumns = ["ID", "ID Lote", "ID Gasto"];
 
   const obtenerData = async () => {
     try {
@@ -33,10 +43,9 @@ const Dashboard: React.FC = () => {
       console.log(data);
       const dataMapped = data.data.map((item: any) => (
         {
-          "ID": item.id_gasto,
-          "ID Categoria": item.categoria,
-          "Categoria": item.categoria_nombre,
-          "Proveedor": item.proveedor_nombre + " " + item.proveedor_apellido,
+          "ID": item.id_recaudacion,
+          "ID Lote": item.id_lote,
+          "Unidad": item.nombre_unidad,
           "Monto": item.monto,
           "Fecha": item.fecha,
           "Metodo Pago": capitalize(item.metodo_pago), // Use the capitalize function to capitalize the method of payment
@@ -44,7 +53,7 @@ const Dashboard: React.FC = () => {
         }
       ));
       console.log(dataMapped);
-      setPropietarios(dataMapped);
+      setRecaudaciones(dataMapped);
       applyFilters(dataMapped, filters);
     } catch (error) {
       console.error("Error al obtener las recaudaciones:", error);
@@ -64,12 +73,11 @@ const Dashboard: React.FC = () => {
       console.log(updatedData)
       let formatedData = {
         id: updatedData["ID"],
-        categoria: updatedData["ID Categoria"],
-        categoria_nombre: updatedData.Categoria,
-        proveedor_nombre: updatedData.Proveedor,
+        Propietario_FK: updatedData.propietario,
+        Gasto_FK: updatedData.Categoria,
         monto: updatedData.Monto,
         fecha: updatedData.Fecha,
-        metodo_pago: updatedData["Metodo Pago"],
+        metodo_Pago: updatedData["Metodo Pago"],
         descripcion: updatedData.Descripcion,
       }
       await axios.put(`${API_ADDRESS}recaudaciones/${formatedData.id}/`, formatedData,
@@ -100,7 +108,7 @@ const Dashboard: React.FC = () => {
   const handleDeleteGastos = async (id: string) => {
     console.log("Testing")
     try {
-      await axios.delete(`${API_ADDRESS}gastos/${id}/`,
+      await axios.delete(`${API_ADDRESS}recaudaciones/${id}/`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -145,7 +153,7 @@ const Dashboard: React.FC = () => {
   }
   const handleFilterChange = (newFilters: { search?: string, email?: string }) => {
     setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
-    applyFilters(propietarios, { ...filters, ...newFilters });
+    applyFilters(recaudaciones, { ...filters, ...newFilters });
   };
   
   const exportToXLS = () => {
@@ -166,7 +174,7 @@ const Dashboard: React.FC = () => {
         {!showAddPropietario && (
           <>
             <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} onExport={exportToXLS}/>
-            {propietarios.length >0 ? <ComplexTable
+            {recaudaciones.length >0 ? <ComplexTable
               tableData={filteredGastos}
               onDelete={handleDeleteGastos}
               onUpdate={handleUpdateGastos}
