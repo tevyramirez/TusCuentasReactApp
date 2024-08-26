@@ -138,7 +138,8 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
   const handleConfirmAction = () => {
     if (periodos.length > 0) {
       const estado = periodos[0].estado;
-      if (estado === "cerrado" || estado) {
+      console.log(periodos[0])
+      if (estado === "cerrado" || estado !== "abierto") {
         abrirPeriodo();
       } else {
         cerrarPeriodo(periodos[0].id_periodo);
