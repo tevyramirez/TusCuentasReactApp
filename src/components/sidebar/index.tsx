@@ -45,7 +45,6 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
   const fetchPeriodos = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      console.log(token)
       const response = await fetch(API_ADDRESS+"periodo/", {
         method: "GET",
         headers: {
@@ -53,17 +52,14 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
           "Authorization": `Bearer ${token}`
         },
       });
-      console.log(response)
       const data = await response.json();
 
       const periodosAbiertos = data.filter((periodo: Periodo) => periodo.estado === "abierto");
-      const periodosCerrados = data.filter((periodo: Periodo) => periodo.estado === "cerrado");
-      const sortedPeriodosCerrados = periodosCerrados.sort((a: Periodo, b: Periodo) => new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime());
-
+      const cerrados = data.filter((periodo: Periodo) => periodo.estado === "cerrado");
+      const sortedPeriodosCerrados = cerrados.sort((a: Periodo, b: Periodo) => new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime());
       if (periodosAbiertos.length > 0) {
         sortedPeriodosCerrados.unshift(periodosAbiertos[0]);
       }
-
       setPeriodos(sortedPeriodosCerrados);
       if (sortedPeriodosCerrados.length > 0) {
         setSelectedPeriodoId(sortedPeriodosCerrados[0].id_periodo);
@@ -75,14 +71,19 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   useEffect(() => {
     fetchPeriodos();
-    console.log(periodos)
   }, []);
-  function capitalizeFirstLetter(string : string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
 
-  const optionsMeses = [...new Set(periodos.map(periodo => new Date(periodo.fecha_inicio).getMonth()))].map(month => {
-    return <option key={month} value={month + 1}>{capitalizeFirstLetter(new Date(0, month).toLocaleString('es-ES', { month: 'long' }))}</option>;
+  function capitalizeFirstLetter(string: string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  const optionsMeses = periodos.map(periodo => {
+    const month = new Date(periodo.fecha_inicio).getMonth();
+    return (
+      <option key={periodo.id_periodo} value={periodo.id_periodo}>
+        {capitalizeFirstLetter(new Date(0, month).toLocaleString('es-ES', { month: 'long' }))}
+      </option>
+    );
   });
 
   const uniqueYears = [...new Set(periodos.map(periodo => new Date(periodo.fecha_inicio).getFullYear()))];
@@ -90,11 +91,24 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
     return <option key={year} value={year}>{year}</option>;
   });
 
-  const handlePeriodoClick = () => {
+  const handlePeriodoChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(event.target.value);
+    setSelectedPeriodoId(selectedId);
+  };
+
+  const handleConfirmAction = () => {
     if (periodos.length > 0) {
       const estado = periodos[0].estado;
-      setIsOpen(true);
+      if (estado === "cerrado" || estado !== "abierto") {
+        abrirPeriodo();
+      } else {
+        cerrarPeriodo(periodos[0].id_periodo);
+      }
     }
+    if (periodos.length === 0) {
+      abrirPeriodo();
+    }
+    handleClose();
   };
 
   const abrirPeriodo = async () => {
@@ -108,8 +122,6 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
         },
       });
       const data = await response.json();
-      console.log("Periodo abierto:", data);
-      // Actualizar la lista de periodos después de abrir uno nuevo
       fetchPeriodos();
     } catch (error) {
       console.error("Error al abrir periodo:", error);
@@ -118,7 +130,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const cerrarPeriodo = async (periodoId: number) => {
     try {
-      let token = localStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token");
       const response = await fetch(`${API_ADDRESS}periodo/${periodoId}/cerrar/`, {
         method: "POST",
         headers: {
@@ -127,28 +139,10 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
         },
       });
       const data = await response.json();
-      console.log("Periodo cerrado:", data);
-      // Actualizar la lista de periodos después de cerrar el periodo
       fetchPeriodos();
     } catch (error) {
       console.error("Error al cerrar periodo:", error);
     }
-  };
-
-  const handleConfirmAction = () => {
-    if (periodos.length > 0) {
-      const estado = periodos[0].estado;
-      console.log(periodos[0])
-      if (estado === "cerrado" || estado !== "abierto") {
-        abrirPeriodo();
-      } else {
-        cerrarPeriodo(periodos[0].id_periodo);
-      }
-    }
-    if (periodos.length === 0) {
-      abrirPeriodo();
-    };
-    handleClose();
   };
 
   return (
@@ -183,7 +177,11 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
                     <form className="max-w-sm mx-auto">
                       <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Periodo</label>
                       <div className="flex">
-                        <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <select
+                          className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                          value={selectedPeriodoId || ""}
+                          onChange={handlePeriodoChange}
+                        >
                           {optionsMeses}
                         </select>
                         <select className="mr-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
