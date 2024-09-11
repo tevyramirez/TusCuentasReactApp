@@ -4,6 +4,7 @@ import Links from "./components/Links";
 import routes from "routes";
 import axios from 'axios';
 import { API_ADDRESS } from "variables/apiSettings";
+import { useNavigate } from "react-router-dom";
 import { 
   Button, 
   Popover, 
@@ -19,6 +20,9 @@ import {
   Slide,
   Fade
 } from '@chakra-ui/react';
+import { useDispatch } from 'react-redux';
+import { setPeriodoActual } from 'features/periodo/periodoSlice';
+import { useAppSelector } from 'app/hooks';
 
 interface Periodo {
   id_periodo: number;
@@ -33,6 +37,9 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
   const [selectedPeriodoId, setSelectedPeriodoId] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const toast = useToast();
+  const dispatch = useDispatch();
+  const periodoActual = useAppSelector((state) => state.periodo.periodoActual);
+  const navigate = useNavigate();
 
   const handleClose = () => {
     setIsOpen(false);
@@ -43,7 +50,9 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
   };
 
   const fetchPeriodos = async () => {
+    
     try {
+      if (selectedPeriodoId === null) {
       const token = localStorage.getItem("access_token");
       const response = await fetch(API_ADDRESS+"periodo/", {
         method: "GET",
@@ -63,15 +72,28 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
       setPeriodos(sortedPeriodosCerrados);
       if (sortedPeriodosCerrados.length > 0) {
         setSelectedPeriodoId(sortedPeriodosCerrados[0].id_periodo);
-      }
+        dispatch(setPeriodoActual(sortedPeriodosCerrados[0].id_periodo));
+      }}
+      else {
+        console.log("El periodo seleccionado es : ", selectedPeriodoId);}
     } catch (error) {
       console.error("Error fetching periodos:", error);
     }
   };
 
+  
+
   useEffect(() => {
     fetchPeriodos();
-  }, []);
+    console.log("Periodo actual:", periodoActual);
+    if (selectedPeriodoId !== null) {
+      console.log("Periodo actual (useEffect):", periodoActual);
+      // Otros efectos secundarios basados en el cambio de periodoActual
+      const periodoActualEstado = periodos.find(periodo => periodo.id_periodo === periodoActual)?.estado;
+      console.log("Estado del periodo actual:", periodoActualEstado);
+    }
+    
+  }, [periodoActual]);
 
   function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -94,6 +116,10 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
   const handlePeriodoChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = parseInt(event.target.value);
     setSelectedPeriodoId(selectedId);
+    console.log("Selected ID:", selectedId);
+    dispatch(setPeriodoActual(selectedId));
+    
+
   };
 
   const handleConfirmAction = () => {
@@ -102,7 +128,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
       if (estado === "cerrado" || estado !== "abierto") {
         abrirPeriodo();
       } else {
-        cerrarPeriodo(periodos[0].id_periodo);
+        navigate("/admin/preview-reporteCierreGastos");
       }
     }
     if (periodos.length === 0) {
@@ -128,23 +154,42 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
     }
   };
 
-  const cerrarPeriodo = async (periodoId: number) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_ADDRESS}periodo/${periodoId}/cerrar/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-      });
-      const data = await response.json();
-      fetchPeriodos();
-    } catch (error) {
-      console.error("Error al cerrar periodo:", error);
+  
+
+  const renderButton = () => {
+    if (selectedPeriodoId === null) {
+      return (
+        <Button size='sm' colorScheme="blue" isDisabled>
+          Seleccione un periodo
+        </Button>
+      );
+    }
+
+    const selectedPeriodo = periodos.find(periodo => periodo.id_periodo === selectedPeriodoId);
+    if (!selectedPeriodo) {
+      return (
+        <Button size='sm' colorScheme="blue" isDisabled>
+          Periodo no encontrado
+        </Button>
+      );
+    }
+
+    if (selectedPeriodo.estado === 'cerrado' && periodos[0].id_periodo === selectedPeriodoId) {
+      return (
+        <Button size='sm' onClick={handleOpen} colorScheme="blue">
+          Abrir Periodo
+        </Button>
+      );
+    }
+
+    if (selectedPeriodo.estado === 'abierto' && periodos[0].id_periodo === selectedPeriodoId) {
+      return (
+        <Button size='sm' onClick={handleOpen} colorScheme="blue">
+          Cerrar Periodo
+        </Button>
+      );
     }
   };
-
   return (
     <div>
       <span
@@ -191,13 +236,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
                       <div className="mt-2">
                         <Popover isOpen={isOpen} onClose={handleClose}>
                           <PopoverTrigger>
-                            <Button
-                              size='sm'
-                              onClick={handleOpen}
-                              colorScheme="blue"
-                            >
-                              {periodos.length > 0 && periodos[0].estado === 'cerrado' && periodos[1].estado === 'cerrado' || periodos.length === 0 ? 'Abrir Periodo' : 'Cerrar Periodo'}
-                            </Button>
+                            <div>{renderButton()}</div>
                           </PopoverTrigger>
                           <Portal>
                             <PopoverContent zIndex="popover">

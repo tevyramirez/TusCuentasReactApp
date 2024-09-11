@@ -7,7 +7,7 @@ const PeriodoSelector = () => {
   const dispatch = useAppDispatch();
 
   const cambiarPeriodo = (nuevoPeriodo: string) => {
-    dispatch(setPeriodoActual(nuevoPeriodo));
+    dispatch(setPeriodoActual());
   };
 
   return (

@@ -6,6 +6,7 @@ import Propietarios from "views/admin/propietarios"
 import Recaudaciones from "views/admin/recaudaciones";
 import { FaCashRegister } from "react-icons/fa6";
 import SignIn from "views/auth/SignIn";
+import PreviewReporteCierreGastos from "views/admin/preview-reporteCierreGastos";
 import {
   MdHome,
   MdLock,
@@ -14,6 +15,8 @@ import {
   MdPeople,
   MdOutlineAttachMoney
 } from "react-icons/md";
+import { Hide } from "@chakra-ui/react";
+import { IconsManifest } from "react-icons/lib";
 
 const routes = [
   {
@@ -23,20 +26,6 @@ const routes = [
     icon: <MdHome className="h-6 w-6" />,
     component: <MainDashboard />,
   },
-  /* {
-    name: "Macrolotes",
-    layout: "/admin",
-    icon: <MdMapsHomeWork className="h-6 w-6" />,
-    path: "macrolotes",
-    component: <Proveedores />,
-  }, */
- /*  {
-    name: "Lotes",
-    layout: "/admin",
-    icon: <MdApartment className="h-6 w-6" />,
-    path: "loteh",
-    component: <Lote />,
-  }, */
   {
     name: "Proveedores",
     layout: "/admin",
@@ -72,6 +61,15 @@ const routes = [
     icon: <MdLock className="h-6 w-6" />,
     component: <SignIn />,
   },
+  {
+    name: "Vista Previa Cierre",
+    layout: "/admin",
+    path: "preview-reporteCierreGastos",
+    component: <PreviewReporteCierreGastos />,
+    icon: <MdHome className="h-6 w-6" />,
+    hideInSidebar: true,
+  },
+  
   
 ];
 export default routes;

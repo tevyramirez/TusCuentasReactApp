@@ -347,7 +347,13 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
           periodo: periodo, 
           es_general: gasto.es_general,
         }
-        const response = await axios.post(API_ADDRESS + 'gastos/', gastoUpload);
+        const response = await axios.post(API_ADDRESS + 'gastos/', gastoUpload,{
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`,}
+          }
+
+        );
         const gastoId = response.data.id_gasto;
 
         if (selectedFile) {

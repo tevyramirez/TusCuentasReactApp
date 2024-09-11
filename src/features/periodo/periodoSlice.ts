@@ -1,18 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface PeriodoState {
-  periodoActual: string;
+  periodoActual: number;
 }
 
 const initialState: PeriodoState = {
-  periodoActual: '',
+  periodoActual: 0,
 };
 
 const periodoSlice = createSlice({
   name: 'periodo',
   initialState,
   reducers: {
-    setPeriodoActual: (state, action: PayloadAction<string>) => {
+    setPeriodoActual: (state, action: PayloadAction<number>) => {
       state.periodoActual = action.payload;
     },
   },

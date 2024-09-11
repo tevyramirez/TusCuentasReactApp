@@ -3,153 +3,192 @@ import { useState, useEffect } from "react";
 import MiniCalendar from "components/calendar/MiniCalendar";
 import { PieChart, ResponsiveContainer, Pie, Cell, } from "recharts";
 import { MdAttachMoney, MdMonetizationOn } from "react-icons/md";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import Widget from "components/widget/Widget";
-
 import AvisosCard from "views/admin/maindashboard/components/AvisosCard";
-
-import { Fade, Card } from "@chakra-ui/react";
+import { Fade, Card, Spinner, Box } from "@chakra-ui/react";
 import axios from 'axios';
 import { API_ADDRESS } from "variables/apiSettings";
+import { useSelector } from "react-redux";
+import { motion } from "framer-motion";
 
 const Dashboard = () => {
-
   const [dataPieChart, setDataPieChart] = useState([])
-  const [totalGastos, setTotalGastos] = useState([])
-  const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  const [totalGastos, setTotalGastos] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const colors = ['#6366F1', '#EC4899', '#8B5CF6', '#10B981', '#F59E0B'];
+  const periodoSeleccionado = useSelector((state: any) => state.periodo.periodoActual);
   
   const dataFetchPie = async () => {
     try {
       let token = localStorage.getItem("access_token");
-      const data = await axios.get(API_ADDRESS + "gastos-por-categoria/", {
+      const data = await axios.get(API_ADDRESS + "gastos-por-categoria-por-periodo/"+periodoSeleccionado+"/", {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         }
       });
-      console.log("DATA DASHBOARD");
-      console.log(data.data.gastos_por_categoria);
       setDataPieChart(data.data.gastos_por_categoria);
-      console.log(dataPieChart);
     } catch (error) {
       console.error("Error al obtener los datos del dashboard:", error);
     }
   }
+
   const dataFetchGadgets = async () => {
     try {
-      const data = await axios.get(API_ADDRESS + "gastos-totales/", {
+      const data = await axios.get(API_ADDRESS + "gastos-totales-por-periodo/"+periodoSeleccionado+"/", {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("access_token")}`
       }});
-      console.log("DATA GASTOS TOTALES");
-      console.log(data.data)
       setTotalGastos(data.data.total_gastos);
-     
     } catch (error) {
       console.error("Error al obtener los datos del dashboard:", error);
     }
   }
 
   useEffect(() => {
-    dataFetchPie();
-    dataFetchGadgets();
-  }, []);
-  return (
-    <div>
-      <div className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 3xl:grid-cols-6">
-        <Fade in={true}>
-          <Widget
-            icon={<MdAttachMoney className="h-7 w-7" />}
-            title={"Total a recaudar"}
-            subtitle={`$${totalGastos}`}
-          />
-        </Fade>
+    const fetchData = async () => {
+      setIsLoading(true);
+      await Promise.all([dataFetchPie(), dataFetchGadgets()]);
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [periodoSeleccionado]);
 
-        <Fade in={true} delay={0.2}>
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <Spinner
+          thickness="4px"
+          speed="0.65s"
+          emptyColor="gray.200"
+          color="blue.500"
+          size="xl"
+        />
+      </Box>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-6 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
           <Widget
-            icon={<MdMonetizationOn className="h-7 w-7" />}
+            icon={<MdAttachMoney className="h-10 w-10 text-indigo-500" />}
+            title={"Total a recaudar"}
+            subtitle={`$${totalGastos.toLocaleString()}`}
+          
+          />
+        </motion.div>
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Widget
+            icon={<MdMonetizationOn className="h-10 w-10 text-pink-500" />}
             title={"Pendiente"}
-            subtitle={"$120.000"} />
-        </Fade>
+            subtitle={"$120.000"}
+            
+          />
+        </motion.div>
       </div>
 
-      {/* Complex Table */}
-      {/*       <Fade in={true} >
-        <div className="mt-5 gr      <Fade in={true} >
-        <div className="mt-5 grid grid-cols-1 gap-5">
-          <ComplexTable tableData={tableDataComplex} />
-        </div>
-      </Fade>id grid-cols-1 gap-5">
-          <ComplexTable tableData={tableDataComplex} />
-        </div>
-      </Fade> */}
-
-      {/* Additional Cards */}
-      <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
-        {/* Avisos Card */}
-
-        {/* Pie Chart */}
-        <Fade in={true} delay={0.3}>
-          
-            <Card>
-              {/* <ResponsiveContainer width="100%" >
-              
-              <PieChart width={300} height={300} data={dataPieChart}>
-                <Pie  dataKey="total" nameKey="categoria"  fill="#8884d8"  />
-              </PieChart>
-              
-            </ResponsiveContainer> */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="bg-white shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
+            <Box className="p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Gastos por Categoría</h3>
               <ResponsiveContainer width="100%" height={300}>
-              <PieChart width={730} height={250}>
-                  <Pie data={dataPieChart} dataKey="total"  cx="50%" cy="50%" innerRadius={60} outerRadius={80} fill="#82ca9d" label >
-                  {dataPieChart.map((entry, index) => (
+                <PieChart>
+                  <Pie
+                    data={dataPieChart}
+                    dataKey="total"
+                    nameKey="categoria"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    label
+                  >
+                    {dataPieChart.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                     ))}
                   </Pie>
-</PieChart>
+                  <Tooltip />
+                </PieChart>
               </ResponsiveContainer>
-            </Card>
+            </Box>
+          </Card>
+        </motion.div>
         
-        </Fade>
-        <Fade in={true} delay={0.3}>
-      
-      <Card>
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="bg-white shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
+            <Box className="p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Gastos por Categoría (Barras)</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={dataPieChart}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="categoria" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="total" fill="#8884d8">
+                    {dataPieChart.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+          </Card>
+        </motion.div>
 
-        <ResponsiveContainer width="100%" height={300} >
-          <BarChart width={730} height={250} data={dataPieChart}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="categoria" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="total" fill="#8884d8">
-              {dataPieChart.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-    
-  </Fade>
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <Card className="bg-white shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
+            <Box className="p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Calendario</h3>
+              <MiniCalendar />
+            </Box>
+          </Card>
+        </motion.div>
       </div>
-      {/* Additional Cards */}
-      <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
-        {/* Avisos Card */}
-        <Fade in={true} delay={0.1}>
-          <AvisosCard />
-        </Fade>
-        {/* Mini Calendar */}
-        <Fade in={true} delay={0.2}>
-          <div className="grid grid-cols-1 rounded-[20px]">
-            <MiniCalendar />
-          </div>
-        </Fade>
-        {/* Pie Chart */}
-       
-      </div>
-    </div>
+
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.7 }}
+      >
+        <Card className="bg-white shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
+          <Box className="p-6">
+            <AvisosCard />
+          </Box>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -7,6 +7,8 @@ import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import { API_ADDRESS } from 'variables/apiSettings';
 import { FiFile } from 'react-icons/fi';
+import { useSelector } from 'react-redux';
+import { AiOutlineConsoleSql } from 'react-icons/ai';
 
 interface AddGastoProps {
   onGoBack: () => void,
@@ -23,7 +25,7 @@ interface Gasto {
   id_gasto: number;
   id_categoria: number;
   id_proveedor: number;
-  lote: Lote;
+  lote: number;
   fecha: Date;
   monto: number;
   metodo_pago: string;
@@ -38,6 +40,7 @@ interface Recaudacion {
   id_recaudacion: number;
   id_lote: number;
   id_gasto: number;
+  id_periodo_ingreso: number;
   fecha: Date;
   monto: number;
   metodo_pago: string;
@@ -47,6 +50,7 @@ interface Recaudacion {
 
 const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
   const toast = useToast();
+  const periodo = useSelector((state: any) => state.periodo.periodoActual);
   const [startDate, setStartDate] = useState(new Date());
   const [showCuotas, setShowCuotas] = useState(false);
   const [showCuotasGasto, setShowCuotasGasto] = useState(false);
@@ -62,6 +66,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
     id_recaudacion: 0,
     id_lote: 0,
     id_gasto: 0,
+    id_periodo_ingreso: 0,
     fecha: startDate,
     monto: 0,
     metodo_pago: '',
@@ -74,7 +79,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
     id_gasto: 0,
     id_categoria: 0,
     id_proveedor: 0,
-    lote: { id_lote: 0, numero_unidad: '', metraje_cuadrado: 0, alicuota: 0 },
+    lote: 0,
     fecha: startDate,
     monto: 0,
     metodo_pago: '',
@@ -237,7 +242,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
 
     async function fetchGastos() {
       try {
-        const response = await axios.get(API_ADDRESS + 'gastos/', {
+        const response = await axios.get(API_ADDRESS + 'gastos/periodo/'+periodo+'/', {
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem("access_token")}`
@@ -249,6 +254,17 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
         console.error('Error al obtener las categorias:', error);
       }
     }
+
+
+
+    fetchGastos();
+ 
+
+  }, [periodo]);
+
+  useEffect(() => {
+
+
 
     async function fetchLotes() {
       try {
@@ -269,8 +285,8 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
 
 
 
-    fetchGastos();
     fetchLotes();
+
   }, []);
 
   const handleSubmit = async () => {
@@ -281,6 +297,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
         const recaudacionUpload = {
           id_lote: recaudacion.id_lote,
           id_gasto: gasto.id_gasto,
+          id_periodo_ingreso: periodo,
           fecha: recaudacion.fecha.toISOString().split('T')[0],
           monto: recaudacion.monto,
           metodo_pago: recaudacion.metodo_pago,
@@ -341,6 +358,7 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
       id_recaudacion: 0,
       id_lote: 0,
       id_gasto: 0,
+      id_periodo_ingreso: 0,
       fecha: startDate,
       monto: 0,
       metodo_pago: '',
@@ -453,8 +471,9 @@ const UserInterface: React.FC<AddGastoProps> = ({ onGoBack, update }) => {
                 <FormLabel>Lotes</FormLabel>
                 <Select
                   placeholder="Selecciona un gasto"
-                  value={recaudacion.id_lote}
+                  value={gasto.lote}
                   onChange={handleLoteChange}
+                  disabled={true}
                 >
                   {lotes.map((lote) => (
 

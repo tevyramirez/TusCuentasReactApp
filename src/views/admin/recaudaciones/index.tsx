@@ -39,8 +39,6 @@ const Dashboard: React.FC = () => {
       }
     );
 
-      console.log("DATA recaudaciones");
-      console.log(data);
       const dataMapped = data.data.map((item: any) => (
         {
           "ID": item.id_recaudacion,
