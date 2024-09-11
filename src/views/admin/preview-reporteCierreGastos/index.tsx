@@ -41,8 +41,9 @@ import {
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { FaDollarSign, FaUsers, FaCalendar, FaChartBar, FaFileAlt } from 'react-icons/fa'
-import { API_ADDRESS } from "../../../variables/apiSettings";
-import { useSelector } from "react-redux";
+import { API_ADDRESS } from "../../../variables/apiSettings"
+import { useSelector } from "react-redux"
+import { useNavigate } from 'react-router-dom'
 
 ChartJS.register(
   CategoryScale,
@@ -105,6 +106,7 @@ export default function VistaPreviaCierrePeriodo() {
   const cancelRef = React.useRef()
   const periodo = useSelector((state: any) => state.periodo.periodoActual)
   const toast = useToast()
+  const navigate = useNavigate()
 
   const bgColor = useColorModeValue('navy.50', 'navy.900')
   const cardBgColor = useColorModeValue('white', 'navy.800')
@@ -136,6 +138,7 @@ export default function VistaPreviaCierrePeriodo() {
         duration: 5000,
         isClosable: true,
       })
+      navigate('/admin')  // Redirige a la página de administración después de cerrar el período
     } catch (error) {
       console.error("Error al cerrar periodo:", error);
       toast({
@@ -293,7 +296,7 @@ export default function VistaPreviaCierrePeriodo() {
                 </CardHeader>
                 <CardBody>
                   <Box h="400px">
-                    <Pie data={pieData}  />
+                    <Pie data={pieData} />
                   </Box>
                 </CardBody>
               </Card>
@@ -319,7 +322,7 @@ export default function VistaPreviaCierrePeriodo() {
                 </CardHeader>
                 <CardBody>
                   <Box h="400px">
-                    {chartData && <Bar data={chartData}/>}
+                    {chartData && <Bar data={chartData} />}
                   </Box>
                 </CardBody>
               </Card>
@@ -347,7 +350,7 @@ export default function VistaPreviaCierrePeriodo() {
           </TabPanels>
         </Tabs>
         <Flex justify="flex-end" mt={8} gap={4}>
-          <Button variant="outline" colorScheme="blue">Cancelar</Button>
+          <Button variant="outline" colorScheme="blue" onClick={() => navigate('/admin')}>Cancelar</Button>
           <Button colorScheme="blue" onClick={handleCierre}>Confirmar Cierre</Button>
         </Flex>
       </Container>
