@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ComplexTable from "views/components/ComplexTable";
+import ComplexTable from "./components/ComplexTable";
 import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddRecaudaciones";
 import axios from 'axios'
@@ -19,6 +19,14 @@ interface Recaudacion{
   "Descripcion": string
 }
 
+interface Saldo{
+  "ID": number,
+  "Lote" : number,
+  "Propietario": number,
+  "Saldo Pendiente": number,
+  "Saldo a Favor": number
+}
+
 const Dashboard: React.FC = () => {
   console.log("recaudaciones test");
   const toast = useToast();
@@ -26,11 +34,11 @@ const Dashboard: React.FC = () => {
   const [filteredGastos, setFilteredGastos] = useState([]);
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
   const [filters, setFilters] = useState({ search: '', email: '' });
-  const hiddenColumns = ["ID", "ID Lote", "ID Gasto"];
+  const hiddenColumns = ["ID", "ID Gasto"];
 
   const obtenerData = async () => {
     try {
-      const data = await axios.get(API_ADDRESS + "recaudaciones/",
+      const data = await axios.get(API_ADDRESS + "saldos/",
         {
         headers: {
           "Content-Type": "application/json",
@@ -41,16 +49,15 @@ const Dashboard: React.FC = () => {
 
       const dataMapped = data.data.map((item: any) => (
         {
-          "ID": item.id_recaudacion,
-          "ID Lote": item.id_lote,
-          "Unidad": item.nombre_unidad,
-          "Monto": item.monto,
-          "Fecha": item.fecha,
-          "Metodo Pago": capitalize(item.metodo_pago), // Use the capitalize function to capitalize the method of payment
-          "Descripcion": item.descripcion,
+          "ID": item.id,
+          "ID Lote": item.lote,
+          "ID Propietario": item.propietario,
+          "Saldo Pendiente": item.saldo_pendiente,
+          "Saldo Abonado": item.saldo_a_favor,
+
         }
       ));
-      console.log(dataMapped);
+      console.log(data.data);
       setRecaudaciones(dataMapped);
       applyFilters(dataMapped, filters);
     } catch (error) {
@@ -177,6 +184,7 @@ const Dashboard: React.FC = () => {
               onDelete={handleDeleteGastos}
               onUpdate={handleUpdateGastos}
               hiddenColumns={hiddenColumns}
+              updateData={obtenerData}
               /> : <NoDataMessage/>}
           </>
         )}
