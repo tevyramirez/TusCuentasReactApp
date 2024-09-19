@@ -36,6 +36,7 @@ import axios from 'axios';
 import { API_ADDRESS } from 'variables/apiSettings';
 import { motion, isValidMotionProp, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from "react-redux";
 
 // Importaciones de componentes modales
 const ViewModal = React.lazy(() => import("../../propietarios/components/ViewModal"));
@@ -50,6 +51,7 @@ interface Recaudacion {
   id_recaudacion: number;
   id_lote: number;
   id_saldo: number;
+  id_periodo_ingreso_id: number;
   fecha: Date;
   monto: number;
   metodo_pago: string;
@@ -85,6 +87,7 @@ const AddRecaudacionForm = React.memo(({ saldoId, loteId, onSubmit, onCancel }: 
     id_recaudacion: 0,
     id_lote: loteId,
     id_saldo: saldoId,
+    id_periodo_ingreso_id: 0,
     fecha: new Date(),
     monto: 0,
     metodo_pago: "",
@@ -180,6 +183,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const updateData = props.updateData;
+  const periodoSeleccionado = useSelector((state: any) => state.periodo.periodoActual);
   const openModal = useCallback((data: RowObj) => {
     setModalData(data);
     setIsModalOpen(true);
@@ -227,11 +231,13 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
 
   const handleSubmitRecaudacion = useCallback(async (newRecaudacion: Recaudacion) => {
     try {
+      console.log("newRecaudacionPEriodo", periodoSeleccionado);
       await axios.post(
         `${API_ADDRESS}recaudaciones/`,
         {
           ...newRecaudacion,
           fecha: newRecaudacion.fecha.toISOString().split("T")[0],
+          id_periodo_ingreso: periodoSeleccionado
         },
         {
           headers: {

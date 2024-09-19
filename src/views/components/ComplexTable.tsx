@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo, forwardRef } from "react";
 import {
   Box,
   Card,
   CardBody,
   Flex,
   IconButton,
+  IconButtonProps,
   Select,
   Table,
   Thead,
@@ -13,7 +14,9 @@ import {
   Th,
   Td,
   TableContainer,
+  chakra,
   Spinner,
+  shouldForwardProp
 } from "@chakra-ui/react";
 import { MdEdit, MdVisibility, MdDelete } from "react-icons/md";
 import {
@@ -24,9 +27,13 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import ViewModal from "../admin/propietarios/components/ViewModal";
-import EditModal from "../admin/propietarios/components/EditModal";
-import ConfirmModal from "../admin/propietarios/components/ConfirmModal";
+import { motion, isValidMotionProp, AnimatePresence } from "framer-motion";
+
+// Importaciones de componentes modales
+const ViewModal = React.lazy(() => import("../admin/propietarios/components/ViewModal"));
+const EditModal = React.lazy(() => import("../admin/propietarios/components/EditModal"));
+const ConfirmModal = React.lazy(() => import("../admin/propietarios/components/ConfirmModal"));
+
 
 type RowObj = {
   [key: string]: any;
@@ -92,6 +99,24 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
     }
   };
 
+  // Crear componentes Chakra con Framer Motion
+const MotionBox = chakra(motion.div, {
+  shouldForwardProp: (prop) => isValidMotionProp(prop) || shouldForwardProp(prop),
+});
+
+const MotionTr = chakra(motion.tr, {
+  shouldForwardProp: (prop) => isValidMotionProp(prop) || shouldForwardProp(prop),
+});
+
+const MotionTd = chakra(motion.td, {
+  shouldForwardProp: (prop) => isValidMotionProp(prop) || shouldForwardProp(prop),
+});
+
+const MotionIconButton = motion(
+  forwardRef<HTMLButtonElement, IconButtonProps>((props, ref) => (
+    <IconButton ref={ref} {...props} />
+  ))
+);
 
   const columns = Object.keys(firstRow).filter(key => !hiddenColumns.includes(key)).map((key) =>
     columnHelper.accessor(key, {
@@ -213,35 +238,38 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
                   </Td>
                 </Tr>
               ) : (
-                table.getRowModel().rows.map((row) => (
-                  <Tr key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <Td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </Td>
-                    ))}
-                  </Tr>
-                ))
+                <AnimatePresence>
+                  {table.getRowModel().rows.map((row) => (
+                    <React.Fragment key={row.id}>
+                      <MotionTr
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                  
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <MotionTd key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </MotionTd>
+                        ))}
+                      </MotionTr>
+                      
+                    </React.Fragment>
+                  ))}
+                </AnimatePresence>
               )}
             </Tbody>
           </Table>
         </TableContainer>
       </CardBody>
-      <ViewModal isOpen={isModalOpen} onClose={closeModal} data={modalData} />
-      <EditModal
-        isOpen={isEditModalOpen}
-        onClose={closeEditModal}
-        data={editData}
-        onSave={handleSave}
-      />
-      <ConfirmModal
-        isOpen={isConfirmModalOpen}
-        onClose={closeConfirmModal}
-        onConfirm={handleDelete}
-      />
+      <React.Suspense fallback={<Spinner />}>
+        {isModalOpen && <ViewModal isOpen={isModalOpen} onClose={closeModal} data={modalData} />}
+        {isEditModalOpen && <EditModal isOpen={isEditModalOpen} onClose={closeEditModal} data={editData} onSave={handleSave} />}
+        {isConfirmModalOpen && <ConfirmModal isOpen={isConfirmModalOpen} onClose={closeConfirmModal} onConfirm={handleDelete} />}
+      </React.Suspense>
     </Card>
   );
 }

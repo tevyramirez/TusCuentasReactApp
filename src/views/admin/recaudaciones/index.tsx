@@ -85,7 +85,7 @@ const Dashboard: React.FC = () => {
         metodo_Pago: updatedData["Metodo Pago"],
         descripcion: updatedData.Descripcion,
       }
-      await axios.put(`${API_ADDRESS}recaudaciones/${formatedData.id}/`, formatedData,
+      await axios.put(`${API_ADDRESS}saldos/${formatedData.id}/`, formatedData,
         {
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +113,7 @@ const Dashboard: React.FC = () => {
   const handleDeleteGastos = async (id: string) => {
     console.log("Testing")
     try {
-      await axios.delete(`${API_ADDRESS}recaudaciones/${id}/`,
+      await axios.delete(`${API_ADDRESS}saldos/${id}/`,
         {
           headers: {
             "Content-Type": "application/json",
