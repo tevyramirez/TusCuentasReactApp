@@ -1,8 +1,6 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useState, forwardRef } from "react";
 import {
   Box,
-  Card,
-  CardBody,
   Flex,
   IconButton,
   IconButtonProps,
@@ -16,10 +14,10 @@ import {
   TableContainer,
   chakra,
   Spinner,
-  useToast,
-  shouldForwardProp,
   Text,
   VStack,
+  useColorModeValue,
+  shouldForwardProp,
 } from "@chakra-ui/react";
 import { MdEdit, MdVisibility, MdDelete } from "react-icons/md";
 import {
@@ -141,7 +139,7 @@ export default function ComplexTable(props: {
           if (key === "Propiedades2") {
             const units = value.split(", ");
             return (
-              <Select>
+              <Select size="xs">
                 <option value="">Selecciona</option>
                 {units.map((unit: string, index: number) => (
                   <option key={index} value={unit.trim()}>
@@ -162,26 +160,37 @@ export default function ComplexTable(props: {
       header: () => <Th>Acciones</Th>,
       cell: (info) => (
         <Flex>
-          <IconButton
-            isRound
+          <MotionIconButton
             aria-label="Ver"
-            size="sm"
             icon={<MdVisibility />}
             onClick={() => openModal(info.row.original)}
+            size="xs"
+            colorScheme="blue"
+            variant="ghost"
+            mr={1}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           />
-          <IconButton
-            isRound
+          <MotionIconButton
             aria-label="Editar"
-            size="sm"
             icon={<MdEdit />}
             onClick={() => openEditModal(info.row.original)}
+            size="xs"
+            colorScheme="green"
+            variant="ghost"
+            mr={1}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           />
-          <IconButton
-            isRound
+          <MotionIconButton
             aria-label="Eliminar"
-            size="sm"
             icon={<MdDelete />}
             onClick={() => openConfirmModal(info.row.original["ID"])}
+            size="xs"
+            colorScheme="red"
+            variant="ghost"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           />
         </Flex>
       ),
@@ -200,73 +209,92 @@ export default function ComplexTable(props: {
     debugTable: true,
   });
 
+  const bgColor = useColorModeValue('white', 'gray.800');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
+
   return (
-    <Card>
-      <CardBody>
-        <TableContainer>
-          <Table size="sm">
-            <Thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <Tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <Th
-                      key={header.id}
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                    </Th>
-                  ))}
-                </Tr>
-              ))}
-            </Thead>
-            <Tbody>
-              {isLoading ? (
-                <Tr>
-                  <Td colSpan={columns.length}>
-                    <Flex justifyContent="center" alignItems="center" height="200px">
-                      <VStack spacing={4}>
-                        <Spinner
-                          thickness="4px"
-                          speed="0.65s"
-                          emptyColor="gray.200"
-                          color="blue.500"
-                          size="xl"
-                        />
-                        <Text fontSize="lg" fontWeight="medium">
-                          Cargando datos...
-                        </Text>
-                      </VStack>
-                    </Flex>
-                  </Td>
-                </Tr>
-              ) : (
-                <AnimatePresence>
-                  {table.getRowModel().rows.map((row) => (
-                    <MotionTr
-                      key={row.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <MotionTd key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </MotionTd>
-                      ))}
-                    </MotionTr>
-                  ))}
-                </AnimatePresence>
-              )}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </CardBody>
+    <Box bg={bgColor} borderRadius="lg" overflow="hidden">
+      <TableContainer>
+        <Table variant="simple" size="sm">
+          <Thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <Tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <Th
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                    cursor="pointer"
+                    px={2}
+                    py={2}
+                    borderColor={borderColor}
+                    color={textColor}
+                    fontWeight="semibold"
+                    fontSize="xs"
+                    textTransform="uppercase"
+                    _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </Th>
+                ))}
+              </Tr>
+            ))}
+          </Thead>
+          <Tbody>
+            {isLoading ? (
+              <Tr>
+                <Td colSpan={columns.length}>
+                  <Flex justifyContent="center" alignItems="center" height="200px">
+                    <VStack spacing={4}>
+                      <Spinner
+                        thickness="4px"
+                        speed="0.65s"
+                        emptyColor="gray.200"
+                        color="blue.500"
+                        size="md"
+                      />
+                      <Text fontSize="sm" fontWeight="medium" color={textColor}>
+                        Cargando datos...
+                      </Text>
+                    </VStack>
+                  </Flex>
+                </Td>
+              </Tr>
+            ) : (
+              <AnimatePresence>
+                {table.getRowModel().rows.map((row) => (
+                  <MotionTr
+                    key={row.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+          
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <MotionTd
+                        key={cell.id}
+                        px={2}
+                        py={1}
+                        borderColor={borderColor}
+                        color={textColor}
+                        fontSize="xs"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </MotionTd>
+                    ))}
+                  </MotionTr>
+                ))}
+              </AnimatePresence>
+            )}
+          </Tbody>
+        </Table>
+      </TableContainer>
       <React.Suspense fallback={<Spinner />}>
         {isModalOpen && (
           <ViewModal isOpen={isModalOpen} onClose={closeModal} data={modalData} />
@@ -287,6 +315,6 @@ export default function ComplexTable(props: {
           />
         )}
       </React.Suspense>
-    </Card>
+    </Box>
   );
 }
