@@ -5,7 +5,16 @@ import AddPropietario from "./components/AddRecaudaciones";
 import axios from 'axios'
 import { API_ADDRESS } from '../../../variables/apiSettings'
 import { capitalize } from 'lodash';
-import { useToast } from '@chakra-ui/react';
+import { 
+  useToast, 
+  Button, 
+  Flex, 
+  Text, 
+  Select, 
+  Box, 
+  VStack,
+  useColorModeValue
+} from '@chakra-ui/react';
 import * as XLSX from 'xlsx'; 
 import NoDataMessage from "views/components/NoDataMessage"
 
@@ -36,18 +45,28 @@ const Dashboard: React.FC = () => {
   const [filters, setFilters] = useState({ search: '', email: '' });
   const hiddenColumns = ["ID", "ID Gasto"];
 
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize] = useState(100);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
   const obtenerData = async () => {
+    setIsLoading(true);
     try {
       const data = await axios.get(API_ADDRESS + "saldos/",
         {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+        },
+        params: {
+          "page": pageIndex + 1,
+          "page_size": pageSize
         }
       }
     );
 
-      const dataMapped = data.data.map((item: any) => (
+      const dataMapped = data.data.results.map((item: any) => (
         {
           "ID": item.id,
           "ID Lote": item.lote,
@@ -62,6 +81,9 @@ const Dashboard: React.FC = () => {
       applyFilters(dataMapped, filters);
     } catch (error) {
       console.error("Error al obtener las recaudaciones:", error);
+    }
+    finally {
+      setIsLoading(false);
     }
   };
 
@@ -172,28 +194,80 @@ const Dashboard: React.FC = () => {
     obtenerData();
   }, []);
 
-  return (
-    <>
+  const handlePageChange = (newPageIndex: number) => {
+    setPageIndex(newPageIndex);
+  };
 
-      <div className="mt-5 grid grid-cols-1 gap-5">
+  const bgColor = useColorModeValue('gray.50', 'gray.800');
+  const cardBgColor = useColorModeValue('white', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'white');
+
+  return (
+    <Box bg={bgColor} minH="100vh" p={2}>
+      <VStack spacing={6} align="stretch">
         {!showAddPropietario && (
           <>
-            <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} onExport={exportToXLS}/>
-            {recaudaciones.length >0 ? <ComplexTable
-              tableData={filteredGastos}
-              onDelete={handleDeleteGastos}
-              onUpdate={handleUpdateGastos}
-              hiddenColumns={hiddenColumns}
-              updateData={obtenerData}
-              /> : <NoDataMessage/>}
+            <FilterBar
+              onAddPropietario={handleAddPropietario}
+              onFilterChange={handleFilterChange}
+              onExport={exportToXLS}
+            />
+            {filteredGastos.length > 0 || isLoading ? (
+              <Box bg={cardBgColor} borderRadius="lg" overflow="hidden" boxShadow="md">
+                <ComplexTable
+                  tableData={filteredGastos}
+                  onDelete={handleDeleteGastos}
+                  onUpdate={handleUpdateGastos}
+                  hiddenColumns={hiddenColumns}
+                  updateData={obtenerData}
+                />
+                <Flex justify="space-between" align="center" p={4} borderTop="1px" borderColor="gray.200">
+                  <Button
+                    onClick={() => handlePageChange(Math.max(pageIndex - 1, 0))}
+                    disabled={pageIndex === 0 || isLoading}
+                    colorScheme="blue"
+                    size="sm"
+                  >
+                    Anterior
+                  </Button>
+                  <Flex align="center">
+                    <Text mr={2} fontSize="sm">Ir a página:</Text>
+                    <Select
+                      value={pageIndex}
+                      onChange={(e) => handlePageChange(Number(e.target.value))}
+                      size="sm"
+                      w="auto"
+                    >
+                      {[...Array(totalPages)].map((_, i) => (
+                        <option key={i} value={i}>
+                          {i + 1}
+                        </option>
+                      ))}
+                    </Select>
+                    <Text ml={2} fontSize="sm">
+                      de {totalPages}
+                    </Text>
+                  </Flex>
+                  <Button
+                    onClick={() => handlePageChange(Math.min(pageIndex + 1, totalPages - 1))}
+                    disabled={pageIndex >= totalPages - 1 || isLoading}
+                    colorScheme="blue"
+                    size="sm"
+                  >
+                    Siguiente
+                  </Button>
+                </Flex>
+              </Box>
+            ) : (
+              <NoDataMessage />
+            )}
           </>
         )}
         {showAddPropietario && (
           <AddPropietario onGoBack={handleGoBack} update={obtenerData} />
         )}
-      </div>
-
-    </>
+      </VStack>
+    </Box>
   );
 };
 
