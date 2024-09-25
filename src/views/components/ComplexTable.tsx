@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, forwardRef } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import {
   Box,
   Card,
@@ -16,7 +16,10 @@ import {
   TableContainer,
   chakra,
   Spinner,
-  shouldForwardProp
+  useToast,
+  shouldForwardProp,
+  Text,
+  VStack,
 } from "@chakra-ui/react";
 import { MdEdit, MdVisibility, MdDelete } from "react-icons/md";
 import {
@@ -24,27 +27,36 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  SortingState,
   useReactTable,
+  SortingState,
 } from "@tanstack/react-table";
 import { motion, isValidMotionProp, AnimatePresence } from "framer-motion";
 
-// Importaciones de componentes modales
-const ViewModal = React.lazy(() => import("../admin/propietarios/components/ViewModal"));
-const EditModal = React.lazy(() => import("../admin/propietarios/components/EditModal"));
-const ConfirmModal = React.lazy(() => import("../admin/propietarios/components/ConfirmModal"));
-
+const ViewModal = React.lazy(() =>
+  import("../admin/propietarios/components/ViewModal")
+);
+const EditModal = React.lazy(() =>
+  import("../admin/propietarios/components/EditModal")
+);
+const ConfirmModal = React.lazy(() =>
+  import("../admin/propietarios/components/ConfirmModal")
+);
 
 type RowObj = {
   [key: string]: any;
 };
 
-export default function ComplexTable(props: { tableData: any, onUpdate: (updatedData: any) => void, onDelete: (id: string) => void, hiddenColumns: any }) {
-  
-  const { tableData, onUpdate, onDelete, hiddenColumns } = props;
+export default function ComplexTable(props: {
+  tableData: any;
+  onUpdate: (updatedData: any) => void;
+  onDelete: (id: string) => void;
+  hiddenColumns: any;
+  obtenerData: () => void;
+  isLoading: boolean;
+}) {
+  const { tableData, onUpdate, onDelete, hiddenColumns, isLoading } = props;
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -91,108 +103,90 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
   };
 
   const handleDelete = () => {
-    console.log("out")
     if (deleteId) {
-      console.log("in")
       onDelete(deleteId);
       closeConfirmModal();
     }
   };
 
-  // Crear componentes Chakra con Framer Motion
-const MotionBox = chakra(motion.div, {
-  shouldForwardProp: (prop) => isValidMotionProp(prop) || shouldForwardProp(prop),
-});
+  const MotionBox = chakra(motion.div, {
+    shouldForwardProp: (prop) =>
+      isValidMotionProp(prop) || shouldForwardProp(prop),
+  });
 
-const MotionTr = chakra(motion.tr, {
-  shouldForwardProp: (prop) => isValidMotionProp(prop) || shouldForwardProp(prop),
-});
+  const MotionTr = chakra(motion.tr, {
+    shouldForwardProp: (prop) =>
+      isValidMotionProp(prop) || shouldForwardProp(prop),
+  });
 
-const MotionTd = chakra(motion.td, {
-  shouldForwardProp: (prop) => isValidMotionProp(prop) || shouldForwardProp(prop),
-});
+  const MotionTd = chakra(motion.td, {
+    shouldForwardProp: (prop) =>
+      isValidMotionProp(prop) || shouldForwardProp(prop),
+  });
 
-const MotionIconButton = motion(
-  forwardRef<HTMLButtonElement, IconButtonProps>((props, ref) => (
-    <IconButton ref={ref} {...props} />
-  ))
-);
-
-  const columns = Object.keys(firstRow).filter(key => !hiddenColumns.includes(key)).map((key) =>
-    columnHelper.accessor(key, {
-      id: key,
-      header: () => {
-        // Evita que se cree la columna razon social, por ahora no se necesita
-      if (key === "Razon Social"){
-        return ""}
-      else{
-      return <Th style={{ margin:"1px",padding: "1px", minWidth: "20px", maxWidth: "120px", fontSize:"12px" }}>{key}</Th>}},
-      cell: (info) => {
-        const value = info.getValue();
-        if (key === "Propiedades2") {
-          const units = value.split(", ");
-          return (
-            <Select style={{ padding: "2px", minWidth: "80px", maxWidth: "150px" }}>
-              <option value="">Selecciona</option>
-              {units.map((unit: string, index: number) => (
-                <option key={index} value={unit.trim()}>
-                  {unit.trim()}
-                </option>
-              ))}
-            </Select>
-          );
-        } 
-        if (key === "Razon Social"){
-          return " "
-        }
-
-        else {
-          return <Td style={{ margin:"1px",padding: "1px", minWidth: "20px", maxWidth: "150px", fontSize:"14px" }}>{value}</Td>;
-        }
-      },
-    })
+  const MotionIconButton = motion(
+    forwardRef<HTMLButtonElement, IconButtonProps>((props, ref) => (
+      <IconButton ref={ref} {...props} />
+    ))
   );
 
+  const columns = Object.keys(firstRow)
+    .filter((key) => !hiddenColumns.includes(key))
+    .map((key) =>
+      columnHelper.accessor(key, {
+        id: key,
+        header: () => <Th>{key}</Th>,
+        cell: (info) => {
+          const value = info.getValue();
+          if (key === "Propiedades2") {
+            const units = value.split(", ");
+            return (
+              <Select>
+                <option value="">Selecciona</option>
+                {units.map((unit: string, index: number) => (
+                  <option key={index} value={unit.trim()}>
+                    {unit.trim()}
+                  </option>
+                ))}
+              </Select>
+            );
+          }
+          return value;
+        },
+      })
+    );
+
   columns.push(
-    columnHelper.accessor("actions", {
+    columnHelper.display({
       id: "actions",
       header: () => <Th>Acciones</Th>,
       cell: (info) => (
         <Flex>
           <IconButton
-            isRound={true}
+            isRound
             aria-label="Ver"
-            style={{padding: "2px", margin:"1px",fontSize: "13px"}}
             size="sm"
             icon={<MdVisibility />}
-            onClick={() => openModal(info.row.original)} // Abrir modal con la data del propietario
+            onClick={() => openModal(info.row.original)}
           />
           <IconButton
-          isRound={true}
-          size="sm"
+            isRound
             aria-label="Editar"
-            style={{padding: "2px", margin:"1px",fontSize: "13px"}}
+            size="sm"
             icon={<MdEdit />}
-            onClick={() => openEditModal(info.row.original)} // Abrir modal de edición con la data del propietario
+            onClick={() => openEditModal(info.row.original)}
           />
           <IconButton
-          isRound={true}
-          size="sm"
+            isRound
             aria-label="Eliminar"
-            style={{padding: "2px", margin:"1px",fontSize: "13px"}}
+            size="sm"
             icon={<MdDelete />}
-            onClick={() => openConfirmModal(info.row.original["ID"])} // Abrir modal de confirmación con el id del propietario
+            onClick={() => openConfirmModal(info.row.original["ID"])}
           />
         </Flex>
       ),
     })
   );
-
-  React.useEffect(() => {
-    if (tableData && tableData.length > 0) {
-      setIsLoading(false);
-    }
-  }, [tableData]);
 
   const table = useReactTable({
     data: tableData,
@@ -232,32 +226,40 @@ const MotionIconButton = motion(
               {isLoading ? (
                 <Tr>
                   <Td colSpan={columns.length}>
-                    <Flex justifyContent="center" alignItems="center">
-                      <Spinner />
+                    <Flex justifyContent="center" alignItems="center" height="200px">
+                      <VStack spacing={4}>
+                        <Spinner
+                          thickness="4px"
+                          speed="0.65s"
+                          emptyColor="gray.200"
+                          color="blue.500"
+                          size="xl"
+                        />
+                        <Text fontSize="lg" fontWeight="medium">
+                          Cargando datos...
+                        </Text>
+                      </VStack>
                     </Flex>
                   </Td>
                 </Tr>
               ) : (
                 <AnimatePresence>
                   {table.getRowModel().rows.map((row) => (
-                    <React.Fragment key={row.id}>
-                      <MotionTr
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                  
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <MotionTd key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </MotionTd>
-                        ))}
-                      </MotionTr>
-                      
-                    </React.Fragment>
+                    <MotionTr
+                      key={row.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <MotionTd key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </MotionTd>
+                      ))}
+                    </MotionTr>
                   ))}
                 </AnimatePresence>
               )}
@@ -266,9 +268,24 @@ const MotionIconButton = motion(
         </TableContainer>
       </CardBody>
       <React.Suspense fallback={<Spinner />}>
-        {isModalOpen && <ViewModal isOpen={isModalOpen} onClose={closeModal} data={modalData} />}
-        {isEditModalOpen && <EditModal isOpen={isEditModalOpen} onClose={closeEditModal} data={editData} onSave={handleSave} />}
-        {isConfirmModalOpen && <ConfirmModal isOpen={isConfirmModalOpen} onClose={closeConfirmModal} onConfirm={handleDelete} />}
+        {isModalOpen && (
+          <ViewModal isOpen={isModalOpen} onClose={closeModal} data={modalData} />
+        )}
+        {isEditModalOpen && (
+          <EditModal
+            isOpen={isEditModalOpen}
+            onClose={closeEditModal}
+            data={editData}
+            onSave={handleSave}
+          />
+        )}
+        {isConfirmModalOpen && (
+          <ConfirmModal
+            isOpen={isConfirmModalOpen}
+            onClose={closeConfirmModal}
+            onConfirm={handleDelete}
+          />
+        )}
       </React.Suspense>
     </Card>
   );

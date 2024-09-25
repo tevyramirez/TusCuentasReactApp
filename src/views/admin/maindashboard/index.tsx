@@ -1,73 +1,96 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import MiniCalendar from "components/calendar/MiniCalendar";
-import { PieChart, ResponsiveContainer, Pie, Cell, } from "recharts";
-import { MdAttachMoney, MdMonetizationOn } from "react-icons/md";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import Widget from "components/widget/Widget";
-import AvisosCard from "views/admin/maindashboard/components/AvisosCard";
-import { Fade, Card, Spinner, Box } from "@chakra-ui/react";
-import axios from 'axios';
-import { API_ADDRESS } from "variables/apiSettings";
-import { useSelector } from "react-redux";
-import { motion } from "framer-motion";
+"use client"
 
-const Dashboard = () => {
+import React, { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { useSelector } from "react-redux"
+import axios from "axios"
+import {
+  Box,
+  Grid,
+  Card,
+  CardHeader,
+  CardBody,
+  Heading,
+  Text,
+  Flex,
+  Spinner,
+  useColorModeValue,
+  Stack,
+} from "@chakra-ui/react"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+} from "recharts"
+import { MdAttachMoney, MdMonetizationOn, MdTrendingUp, MdWarning } from "react-icons/md"
+
+import { API_ADDRESS } from "../../../variables/apiSettings"
+import Widget from "../../../components/widget/Widget"
+import MiniCalendar from "../../../components/calendar/MiniCalendar"
+import AvisosCard from "../../../views/admin/maindashboard/components/AvisosCard"
+
+const COLORS = ["#6366F1", "#EC4899", "#8B5CF6", "#10B981", "#F59E0B"]
+
+export default function EnhancedDashboard() {
   const [dataPieChart, setDataPieChart] = useState([])
   const [totalGastos, setTotalGastos] = useState(0)
+  const [pendingAmount, setPendingAmount] = useState(0)
+  const [monthlyExpenses, setMonthlyExpenses] = useState([])
+  const [topExpenses, setTopExpenses] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const colors = ['#6366F1', '#EC4899', '#8B5CF6', '#10B981', '#F59E0B'];
-  const periodoSeleccionado = useSelector((state: any) => state.periodo.periodoActual);
-  
-  const dataFetchPie = async () => {
-    try {
-      let token = localStorage.getItem("access_token");
-      const data = await axios.get(API_ADDRESS + "gastos-por-categoria-por-periodo/"+periodoSeleccionado+"/", {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
-      setDataPieChart(data.data.gastos_por_categoria);
-    } catch (error) {
-      console.error("Error al obtener los datos del dashboard:", error);
-    }
-  }
+  const periodoSeleccionado = useSelector((state: any) => state.periodo.periodoActual)
 
-  const dataFetchGadgets = async () => {
-    try {
-      const data = await axios.get(API_ADDRESS + "gastos-totales-por-periodo/"+periodoSeleccionado+"/", {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-      }});
-      setTotalGastos(data.data.total_gastos);
-    } catch (error) {
-      console.error("Error al obtener los datos del dashboard:", error);
-    }
-  }
+  const bgColor = useColorModeValue("white", "gray.800")
+  const textColor = useColorModeValue("gray.800", "white")
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
-      await Promise.all([dataFetchPie(), dataFetchGadgets()]);
-      setIsLoading(false);
-    };
-    fetchData();
-  }, [periodoSeleccionado]);
+      setIsLoading(true)
+      try {
+        const token = localStorage.getItem("access_token")
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+
+        const [gastosPorCategoria, gastosTotales, gastosMensuales, gastosTop] = await Promise.all([
+          axios.get(`${API_ADDRESS}gastos-por-categoria-por-periodo/${periodoSeleccionado}/`, { headers }),
+          axios.get(`${API_ADDRESS}gastos-totales-por-periodo/${periodoSeleccionado}/`, { headers }),
+          axios.get(`${API_ADDRESS}gastos-mensuales/${periodoSeleccionado}/`, { headers }),
+          axios.get(`${API_ADDRESS}top-gastos/${periodoSeleccionado}/`, { headers }),
+        ])
+
+        setDataPieChart(gastosPorCategoria.data.gastos_por_categoria)
+        setTotalGastos(gastosTotales.data.total_gastos)
+        setPendingAmount(gastosTotales.data.pending_amount)
+        setMonthlyExpenses(gastosMensuales.data.gastos_mensuales)
+        setTopExpenses(gastosTop.data.top_gastos)
+      } catch (error) {
+        console.error("Error al obtener los datos del dashboard:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [periodoSeleccionado])
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <Spinner
-          thickness="4px"
-          speed="0.65s"
-          emptyColor="gray.200"
-          color="blue.500"
-          size="xl"
-        />
-      </Box>
-    );
+      <Flex justifyContent="center" alignItems="center" height="100vh">
+        <Spinner thickness="4px" speed="0.65s" emptyColor="gray.200" color="blue.500" size="xl" />
+      </Flex>
+    )
   }
 
   return (
@@ -77,42 +100,64 @@ const Dashboard = () => {
       transition={{ duration: 0.5 }}
       className="p-6 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+      <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={6}>
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
           <Widget
             icon={<MdAttachMoney className="h-10 w-10 text-indigo-500" />}
-            title={"Total a recaudar"}
+            title="Total a recaudar"
             subtitle={`$${totalGastos.toLocaleString()}`}
-          
           />
         </motion.div>
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
           <Widget
             icon={<MdMonetizationOn className="h-10 w-10 text-pink-500" />}
-            title={"Pendiente"}
-            subtitle={"$120.000"}
-            
+            title="Pendiente"
+            subtitle={`$${pendingAmount.toLocaleString()}`}
           />
         </motion.div>
-      </div>
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
+          <Widget
+            icon={<MdTrendingUp className="h-10 w-10 text-green-500" />}
+            title="Tasa de recaudación"
+            subtitle={`${((totalGastos - pendingAmount) / totalGastos * 100).toFixed(2)}%`}
+          />
+        </motion.div>
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+          <Widget
+            icon={<MdWarning className="h-10 w-10 text-yellow-500" />}
+            title="Propietarios morosos"
+            subtitle="5"
+          />
+        </motion.div>
+      </Grid>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="bg-white shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
-            <Box className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">Gastos por Categoría</h3>
+      <Grid templateColumns={{ base: "1fr", lg: "2fr 1fr" }} gap={6}>
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6 }}>
+          <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
+            <CardHeader>
+              <Heading size="md" color={textColor}>Gastos Mensuales</Heading>
+            </CardHeader>
+            <CardBody>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={monthlyExpenses}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="total" stroke="#8884d8" activeDot={{ r: 8 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardBody>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.7 }}>
+          <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
+            <CardHeader>
+              <Heading size="md" color={textColor}>Gastos por Categoría</Heading>
+            </CardHeader>
+            <CardBody>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -121,75 +166,70 @@ const Dashboard = () => {
                     nameKey="categoria"
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
                     outerRadius={80}
                     fill="#8884d8"
                     label
                   >
                     {dataPieChart.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
-            </Box>
+            </CardBody>
           </Card>
         </motion.div>
-        
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Card className="bg-white shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
-            <Box className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">Gastos por Categoría (Barras)</h3>
+      </Grid>
+
+      <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }}>
+          <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
+            <CardHeader>
+              <Heading size="md" color={textColor}>Top 5 Gastos</Heading>
+            </CardHeader>
+            <CardBody>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dataPieChart}>
+                <BarChart data={topExpenses}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="categoria" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="total" fill="#8884d8">
-                    {dataPieChart.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                    {topExpenses.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </Box>
+            </CardBody>
           </Card>
         </motion.div>
 
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card className="bg-white shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
-            <Box className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">Calendario</h3>
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.9 }}>
+          <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
+            <CardHeader>
+              <Heading size="md" color={textColor}>Calendario de Eventos</Heading>
+            </CardHeader>
+            <CardBody>
               <MiniCalendar />
-            </Box>
+            </CardBody>
           </Card>
         </motion.div>
-      </div>
+      </Grid>
 
-      <motion.div
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.7 }}
-      >
-        <Card className="bg-white shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
-          <Box className="p-6">
+      <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1 }}>
+        <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
+          <CardHeader>
+            <Heading size="md" color={textColor}>Avisos Importantes</Heading>
+          </CardHeader>
+          <CardBody>
             <AvisosCard />
-          </Box>
+          </CardBody>
         </Card>
       </motion.div>
     </motion.div>
-  );
-};
-
-export default Dashboard;
+  )
+}

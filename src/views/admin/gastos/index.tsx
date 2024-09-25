@@ -5,10 +5,10 @@ import AddPropietario from "./components/AddGastos";
 import axios from 'axios';
 import { API_ADDRESS } from '../../../variables/apiSettings';
 import { capitalize } from 'lodash';
-import { useToast } from '@chakra-ui/react';
+import { useToast, Button, Flex, Text } from '@chakra-ui/react';
 import * as XLSX from 'xlsx';
 import NoDataMessage from "views/components/NoDataMessage";
-import { useSelector } from 'react-redux'; // Importa useSelector
+import { useSelector } from 'react-redux';
 
 const Dashboard: React.FC = () => {
   const toast = useToast();
@@ -16,21 +16,32 @@ const Dashboard: React.FC = () => {
   const [filteredGastos, setFilteredGastos] = useState([]);
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
   const [filters, setFilters] = useState({ search: '', email: '' });
+  
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize] = useState(100);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const hiddenColumns = ["ID", "ID Categoria"];
 
-  // Obtiene el periodo actual desde el estado global
   const periodoSeleccionado = useSelector((state: any) => state.periodo.periodoActual);
 
   const obtenerData = async () => {
+    setIsLoading(true);
     try {
-      const data = await axios.get(`${API_ADDRESS}gastos/periodo/${periodoSeleccionado}/`, {
+      const response = await axios.get(`${API_ADDRESS}gastos/periodo/${periodoSeleccionado}/`, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+        },
+        params: {
+          "page": pageIndex + 1,
+          "page_size": pageSize
         }
       });
-
-      const dataMapped = data.data.map((item: any) => ({
+      
+      const { results, count } = response.data;
+      const dataMapped = results.map((item: any) => ({
         "ID": item.id_gasto,
         "ID Categoria": item.categoria,
         "Categoria": item.categoria_nombre,
@@ -42,17 +53,24 @@ const Dashboard: React.FC = () => {
       }));
 
       setPropietarios(dataMapped);
-      applyFilters(dataMapped, filters);
-  
+      setFilteredGastos(dataMapped);
+      setTotalPages(Math.ceil(count / pageSize));
     } catch (error) {
       console.error("Error al obtener los gastos:", error);
+      toast({
+        title: "Error al obtener los gastos",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    console.log("Periodo actual se ha actualizado:", periodoSeleccionado);
     obtenerData();
-  }, [periodoSeleccionado]); // Ejecuta obtenerData cada vez que cambie periodoSeleccionado
+  }, [periodoSeleccionado, pageIndex, pageSize]);
 
   const handleAddPropietario = () => {
     setShowAddPropietario(true);
@@ -156,6 +174,10 @@ const Dashboard: React.FC = () => {
     XLSX.writeFile(workbook, "gastos.xlsx");
   };
 
+  const handlePageChange = (newPageIndex: number) => {
+    setPageIndex(newPageIndex);
+  };
+
   return (
     <div className="mt-5 grid grid-cols-1 gap-5">
       {!showAddPropietario && (
@@ -165,13 +187,32 @@ const Dashboard: React.FC = () => {
             onFilterChange={handleFilterChange}
             onExport={exportToXLS}
           />
-          {propietarios.length > 0 ? (
-            <ComplexTable
-              tableData={filteredGastos}
-              onDelete={handleDeleteGastos}
-              onUpdate={handleUpdateGastos}
-              hiddenColumns={hiddenColumns}
-            />
+          {filteredGastos.length > 0 || isLoading ? (
+            <>
+              <ComplexTable
+                tableData={filteredGastos}
+                onDelete={handleDeleteGastos}
+                onUpdate={handleUpdateGastos}
+                hiddenColumns={hiddenColumns}
+                obtenerData={obtenerData}
+                isLoading={isLoading}
+              />
+              <Flex justify="space-between" align="center" mt={4}>
+                <Button
+                  onClick={() => handlePageChange(Math.max(pageIndex - 1, 0))}
+                  disabled={pageIndex === 0 || isLoading}
+                >
+                  Anterior
+                </Button>
+                <Text>Página {pageIndex + 1} de {totalPages}</Text>
+                <Button
+                  onClick={() => handlePageChange(Math.min(pageIndex + 1, totalPages - 1))}
+                  disabled={pageIndex >= totalPages - 1 || isLoading}
+                >
+                  Siguiente
+                </Button>
+              </Flex>
+            </>
           ) : (
             <NoDataMessage />
           )}

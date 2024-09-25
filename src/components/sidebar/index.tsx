@@ -61,8 +61,9 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
           "Authorization": `Bearer ${token}`
         },
       });
-      const data = await response.json();
-
+      const data2 = await response.json();
+      const data= data2.results;
+      console.log(data)
       const periodosAbiertos = data.filter((periodo: Periodo) => periodo.estado === "abierto");
       const cerrados = data.filter((periodo: Periodo) => periodo.estado === "cerrado");
       const sortedPeriodosCerrados = cerrados.sort((a: Periodo, b: Periodo) => new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime());
