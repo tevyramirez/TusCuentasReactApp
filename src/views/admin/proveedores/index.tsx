@@ -4,10 +4,18 @@ import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddProveedor";
 import axios from 'axios'
 import {API_ADDRESS} from '../../../variables/apiSettings'
-import { useToast } from '@chakra-ui/react';
 import * as XLSX from "xlsx"
 import NoDataMessage from "views/components/NoDataMessage"
-
+import { 
+  useToast, 
+  Button, 
+  Flex, 
+  Text, 
+  Select, 
+  Box, 
+  VStack,
+  useColorModeValue
+} from '@chakra-ui/react';
 
 const Dashboard: React.FC = () => {
   console.log("Propietarios test");
@@ -16,21 +24,37 @@ const Dashboard: React.FC = () => {
   const [filteredPropietarios, setFilteredPropietarios] = useState([]);
   const [filters, setFilters] = useState({ search: '', razonSocial: '', email: '' });
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize] = useState(100);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
   const hiddenColumns = ["ID"]
+  const bgColor = useColorModeValue('gray.50', 'gray.800');
+  const cardBgColor = useColorModeValue('white', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'white');
+
 
   const obtenerData = async () => {
+    setIsLoading(true);
     try {
       const data = await axios.get(API_ADDRESS+"proveedores/",
         {
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
+          },
+          
+        params: {
+          "page": pageIndex + 1,
+          "page_size": pageSize
+        }
         }
       );
       console.log("DATA PROVEEDORES");
       console.log(data);
-      const dataMapped = data.data.map((item: any) => (
+      const { results, count } = data.data;
+      const dataMapped = results.map((item: any) => (
         {
           "ID": item.id_proveedor,
           "Rut":item.rut,
@@ -43,8 +67,12 @@ const Dashboard: React.FC = () => {
       console.log(dataMapped);
       setPropietarios(dataMapped);
       applyFilters(dataMapped, filters);
+      setTotalPages(Math.ceil(count / pageSize));
     } catch (error) {
       console.error("Error al obtener los proveedores:", error);
+    }
+    finally {
+      setIsLoading(false);
     }
   };
 
@@ -149,6 +177,11 @@ const Dashboard: React.FC = () => {
       })
     }
   };
+
+  const handlePageChange = (newPageIndex: number) => {
+    setPageIndex(newPageIndex);
+  };
+
   const exportToXLS = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredPropietarios);
     const workbook = XLSX.utils.book_new();
@@ -159,26 +192,72 @@ const Dashboard: React.FC = () => {
     obtenerData();
   }, []);
   return (
-    <>
-      
-        <div className="mt-5 grid grid-cols-1 gap-5">
-          {!showAddPropietario && (
-            <>
-              <FilterBar onAddPropietario={handleAddPropietario} onFilterChange={handleFilterChange} onExport={exportToXLS} />
-              {propietarios.length >0 ?  <ComplexTable 
-              tableData={filteredPropietarios} 
-              onUpdate={handleUpdatePropietario} 
-              onDelete={handleDeletePropietario}
-              hiddenColumns={hiddenColumns}
-            /> : <NoDataMessage/>}
-            </>
+    <Box bg={bgColor} minH="100vh" p={2}>
+    <VStack spacing={6} align="stretch">
+      {!showAddPropietario && (
+        <>
+          <FilterBar
+            onAddPropietario={handleAddPropietario}
+            onFilterChange={handleFilterChange}
+            onExport={exportToXLS}
+          />
+          {filteredPropietarios.length > 0 || isLoading ? (
+            <Box bg={cardBgColor} borderRadius="lg" overflow="hidden" boxShadow="md">
+              <ComplexTable
+                tableData={filteredPropietarios}
+                onDelete={handleDeletePropietario}
+                onUpdate={handleUpdatePropietario}
+                hiddenColumns={hiddenColumns}
+                obtenerData={obtenerData}
+                isLoading={isLoading}
+              />
+              <Flex justify="space-between" align="center" p={4} borderTop="1px" borderColor="gray.200">
+                <Button
+                  onClick={() => handlePageChange(Math.max(pageIndex - 1, 0))}
+                  disabled={pageIndex === 0 || isLoading}
+                  colorScheme="blue"
+                  size="sm"
+                >
+                  Anterior
+                </Button>
+                <Flex align="center">
+                  <Text mr={2} fontSize="sm">Ir a página:</Text>
+                  <Select
+                    value={pageIndex}
+                    onChange={(e) => handlePageChange(Number(e.target.value))}
+                    size="sm"
+                    w="auto"
+                  >
+                    {[...Array(totalPages)].map((_, i) => (
+                      <option key={i} value={i}>
+                        {i + 1}
+                      </option>
+                    ))}
+                  </Select>
+                  <Text ml={2} fontSize="sm">
+                    de {totalPages}
+                  </Text>
+                </Flex>
+                <Button
+                  onClick={() => handlePageChange(Math.min(pageIndex + 1, totalPages - 1))}
+                  disabled={pageIndex >= totalPages - 1 || isLoading}
+                  colorScheme="blue"
+                  size="sm"
+                >
+                  Siguiente
+                </Button>
+              </Flex>
+            </Box>
+          ) : (
+            <NoDataMessage />
           )}
-          {showAddPropietario && (
-            <AddPropietario onGoBack={handleGoBack} update={obtenerData} />
-          )}
-        </div>
-
-    </>
+        </>
+      )}
+      {showAddPropietario && (
+        <AddPropietario onGoBack={handleGoBack} update={obtenerData} />
+      )}
+    </VStack>
+  </Box>
   );
 };
 
