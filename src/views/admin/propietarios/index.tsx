@@ -22,7 +22,9 @@ const PropietariosDashboard: React.FC = () => {
   const [filteredPropietarios, setFilteredPropietarios] = useState([]);
   const [showAddPropietario, setShowAddPropietario] = useState<boolean>(false);
   const [filters, setFilters] = useState({ search: '', razonSocial: '', email: '' });
+  
   const hiddenColumns = ["ID", "Razon Social"]
+
   const toast = useToast();
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize] = useState(100);
