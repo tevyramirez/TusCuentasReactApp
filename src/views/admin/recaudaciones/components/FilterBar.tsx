@@ -69,16 +69,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ onAddPropietario, onFilterChange,
               </MenuItem>
             </MenuList>
           </Menu>
-        </InputGroup>
-        <Button
-          leftIcon={<AddIcon />}
-          colorScheme="blue"
-          onClick={onAddPropietario}
-          pl="8"
-          pr="8"
-        >
-          Recaudación
-        </Button>
+        </InputGroup> 
         <Button leftIcon={<DownloadIcon />} onClick={onExport} colorScheme="green" pl="8"
           pr="8">Exportar</Button>
       </Stack>

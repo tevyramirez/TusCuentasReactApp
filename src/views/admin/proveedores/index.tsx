@@ -38,7 +38,7 @@ const Dashboard: React.FC = () => {
   const obtenerData = async () => {
     setIsLoading(true);
     try {
-      const data = await axios.get(API_ADDRESS+"proveedores/",
+      const response = await axios.get(API_ADDRESS+"proveedores/",
         {
           headers: {
             "Content-Type": "application/json",
@@ -52,9 +52,12 @@ const Dashboard: React.FC = () => {
         }
       );
       console.log("DATA PROVEEDORES");
-      console.log(data);
-      const { results, count } = data.data;
-      const dataMapped = results.map((item: any) => (
+      console.log(response);
+      
+      const { data } = response;
+      const count = data.length;
+      console.log("results", data);
+      const dataMapped = data.map((item: any) => (
         {
           "ID": item.id_proveedor,
           "Rut":item.rut,

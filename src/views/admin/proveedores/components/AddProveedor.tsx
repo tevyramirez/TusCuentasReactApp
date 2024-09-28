@@ -95,7 +95,13 @@ const UserInterface: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
           servicio: proveedor.servicio,
         };  
 
-        const response = await axios.post(API_ADDRESS + 'proveedores/', dataToSend);
+        const response = await axios.post(API_ADDRESS + 'proveedores/', dataToSend,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+          }
+        );
         console.log('Proveedor creado:', response.data);
         toast({
           title: 'Éxito',

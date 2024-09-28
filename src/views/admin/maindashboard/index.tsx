@@ -41,6 +41,11 @@ import AvisosCard from "../../../views/admin/maindashboard/components/AvisosCard
 
 const COLORS = ["#6366F1", "#EC4899", "#8B5CF6", "#10B981", "#F59E0B"]
 
+interface SumaSaldos {
+  suma_pendiente: number,
+  suma_a_favor: number,
+}
+
 export default function EnhancedDashboard() {
   const [dataPieChart, setDataPieChart] = useState([])
   const [totalGastos, setTotalGastos] = useState(0)
@@ -48,6 +53,10 @@ export default function EnhancedDashboard() {
   const [monthlyExpenses, setMonthlyExpenses] = useState([])
   const [topExpenses, setTopExpenses] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [saldos, setSaldos] = useState({
+    suma_pendiente: 0,
+    suma_a_favor: 0,
+  })
   const periodoSeleccionado = useSelector((state: any) => state.periodo.periodoActual)
 
   const bgColor = useColorModeValue("white", "gray.800")
@@ -63,18 +72,15 @@ export default function EnhancedDashboard() {
           Authorization: `Bearer ${token}`,
         }
 
-        const [gastosPorCategoria, gastosTotales, gastosMensuales, gastosTop] = await Promise.all([
-          axios.get(`${API_ADDRESS}gastos-por-categoria-por-periodo/${periodoSeleccionado}/`, { headers }),
-          axios.get(`${API_ADDRESS}gastos-totales-por-periodo/${periodoSeleccionado}/`, { headers }),
-          axios.get(`${API_ADDRESS}gastos-mensuales/${periodoSeleccionado}/`, { headers }),
-          axios.get(`${API_ADDRESS}top-gastos/${periodoSeleccionado}/`, { headers }),
+        const [sumaSaldos, gastosPorCategorias] = await Promise.all([
+          axios.get(`${API_ADDRESS}sumasaldos/`, { headers }),
+          axios.get(`${API_ADDRESS}gastos-por-categoria/`, { headers }),
         ])
 
-        setDataPieChart(gastosPorCategoria.data.gastos_por_categoria)
-        setTotalGastos(gastosTotales.data.total_gastos)
-        setPendingAmount(gastosTotales.data.pending_amount)
-        setMonthlyExpenses(gastosMensuales.data.gastos_mensuales)
-        setTopExpenses(gastosTop.data.top_gastos)
+        setSaldos(sumaSaldos.data)
+        console.log (gastosPorCategorias.data)
+
+      
       } catch (error) {
         console.error("Error al obtener los datos del dashboard:", error)
       } finally {
@@ -105,21 +111,21 @@ export default function EnhancedDashboard() {
           <Widget
             icon={<MdAttachMoney className="h-10 w-10 text-indigo-500" />}
             title="Total a recaudar"
-            subtitle={`$${totalGastos.toLocaleString()}`}
+            subtitle={`$${saldos.suma_pendiente.toLocaleString()}`}
           />
         </motion.div>
         <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
           <Widget
-            icon={<MdMonetizationOn className="h-10 w-10 text-pink-500" />}
-            title="Pendiente"
-            subtitle={`$${pendingAmount.toLocaleString()}`}
+            icon={<MdMonetizationOn className="h-10 w-10 text-green-500" />}
+            title="Pagado"
+            subtitle={`$${saldos.suma_a_favor.toLocaleString()}`}
           />
         </motion.div>
         <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
           <Widget
             icon={<MdTrendingUp className="h-10 w-10 text-green-500" />}
             title="Tasa de recaudación"
-            subtitle={`${((totalGastos - pendingAmount) / totalGastos * 100).toFixed(2)}%`}
+            subtitle={`${((saldos.suma_a_favor) / saldos.suma_pendiente * 100).toFixed(2)}%`}
           />
         </motion.div>
         <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>

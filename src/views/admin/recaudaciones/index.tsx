@@ -17,6 +17,7 @@ import {
 } from '@chakra-ui/react';
 import * as XLSX from 'xlsx'; 
 import NoDataMessage from "views/components/NoDataMessage"
+import { useSelector } from "react-redux";
 
 interface Recaudacion{
   "ID": number,
@@ -32,8 +33,8 @@ interface Saldo{
   "ID": number,
   "Lote" : number,
   "Propietario": number,
-  "Saldo Pendiente": number,
-  "Saldo a Favor": number
+  "Saldo a pagar": number,
+  "Saldo pagado": number
 }
 
 const Dashboard: React.FC = () => {
@@ -49,6 +50,10 @@ const Dashboard: React.FC = () => {
   const [pageSize] = useState(100);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  
+
+
+  const periodoActual = useSelector((state: any) => state.periodo.periodoActual);
 
   const obtenerData = async () => {
     setIsLoading(true);
@@ -71,8 +76,8 @@ const Dashboard: React.FC = () => {
           "ID": item.id,
           "ID Lote": item.lote,
           "ID Propietario": item.propietario,
-          "Saldo Pendiente": item.saldo_pendiente,
-          "Saldo Abonado": item.saldo_a_favor,
+          "Saldo a pagar": item.saldo_total_a_pagar,
+          "Saldo pagado": item.saldo_pagado,
 
         }
       ));

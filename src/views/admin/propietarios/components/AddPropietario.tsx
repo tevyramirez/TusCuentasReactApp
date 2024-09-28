@@ -126,6 +126,7 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
       const tiposRelacionExistentes = selectedUnidad ? selectedUnidad.relaciones : [];
       const tiposRelacionDisponibles = ['Dueño', 'Arrendatario', 'Corredor'].filter(tipo => !tiposRelacionExistentes.includes(tipo));
       setRelacionesDisponibles(tiposRelacionDisponibles);
+      console.log(tiposRelacionDisponibles);
     }
     setRelacionLote(prevState => ({
       ...prevState,
