@@ -79,6 +79,7 @@ export default function EnhancedDashboard() {
 
         setSaldos(sumaSaldos.data)
         console.log (gastosPorCategorias.data)
+        setDataPieChart(gastosPorCategorias.data.gastos_por_categoria)
 
       
       } catch (error) {

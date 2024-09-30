@@ -118,8 +118,32 @@ export default function VistaPreviaCierrePeriodo() {
     fetchGastos().then(setGastos)
     fetchSaldos().then(setSaldos)
     fetchProyecciones().then(setProyecciones)
+    getSaldosData();
   }, [])
   
+  const getSaldosData = () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = fetch(`${API_ADDRESS}sumasaldos/periodo/${periodo}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+    })
+    console.log(response)
+
+  } catch (error) {
+      console.error("Error al sumar saldos:", error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al sumar los saldos.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      })
+    }};
+
   const cerrarPeriodo = async (periodoId: number) => {
     try {
       const token = localStorage.getItem("access_token");
