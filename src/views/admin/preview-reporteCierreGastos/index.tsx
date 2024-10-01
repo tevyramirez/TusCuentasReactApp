@@ -55,6 +55,11 @@ ChartJS.register(
   Legend
 )
 
+interface SaldosApi {
+  suma_pendiente: number,
+  suma_a_favor: number,
+}
+
 // Simulación de llamadas a API (sin cambios)
 const fetchResumen = async () => {
   // Simula una llamada a API
@@ -97,22 +102,24 @@ const fetchProyecciones = async () => {
 }
 
 export default function VistaPreviaCierrePeriodo() {
+
   const [fecha, setFecha] = useState<Date | undefined>(new Date())
   const [resumen, setResumen] = useState<any>(null)
   const [gastos, setGastos] = useState<any[]>([])
   const [saldos, setSaldos] = useState<any[]>([])
+  const [saldosApi, setSaldosApi] = useState<SaldosApi>({
+    suma_pendiente: 0,
+    suma_a_favor: 0,
+})
   const [proyecciones, setProyecciones] = useState<any>(null)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
   const cancelRef = React.useRef()
   const periodo = useSelector((state: any) => state.periodo.periodoActual)
   const toast = useToast()
   const navigate = useNavigate()
-
   const bgColor = useColorModeValue('navy.50', 'navy.900')
-  const cardBgColor = useColorModeValue('white', 'navy.800')
-  const textColor = useColorModeValue('navy.700', 'white')
   const accentColor = useColorModeValue('navy.500', 'navy.400')
-
+  
   useEffect(() => {
     fetchResumen().then(setResumen)
     fetchGastos().then(setGastos)
@@ -121,17 +128,21 @@ export default function VistaPreviaCierrePeriodo() {
     getSaldosData();
   }, [])
   
-  const getSaldosData = () => {
+  const getSaldosData = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = fetch(`${API_ADDRESS}sumasaldos/periodo/${periodo}/`, {
+      const response = await fetch(`${API_ADDRESS}sumasaldos/periodo/${periodo}/`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-    })
-    console.log(response)
+      });
+      // Almacenar la respuesta en una variable
+      const data = await response.json();
+      console.log(data)
+      setSaldosApi(data.saldos)
+      console.log(saldosApi)
 
   } catch (error) {
       console.error("Error al sumar saldos:", error);
@@ -298,13 +309,13 @@ export default function VistaPreviaCierrePeriodo() {
                 <TarjetaResumen
                   icon={FaDollarSign}
                   titulo="Gastos Totales"
-                  valor={resumen ? `$${resumen.gastosTotales.toFixed(2)}` : 'Cargando...'}
+                  valor={resumen ? `$${saldosApi.suma_pendiente.toFixed(0)}` : 'Cargando...'}
                   colorAcento={accentColor}
                 />
                 <TarjetaResumen
                   icon={FaUsers}
                   titulo="Saldos de Propietarios"
-                  valor={resumen ? `$${resumen.saldosPropietarios.toFixed(2)}` : 'Cargando...'}
+                  valor={resumen ? `$${saldosApi.suma_a_favor.toFixed(0)}` : 'Cargando...'}
                   colorAcento={accentColor}
                 />
                 <TarjetaResumen
