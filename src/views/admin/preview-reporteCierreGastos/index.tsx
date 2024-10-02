@@ -59,7 +59,10 @@ interface SaldosApi {
   suma_pendiente: number,
   suma_a_favor: number,
 }
-
+interface PeriodoCierre{
+  id: number,
+  mesInicio: string,
+}
 // Simulación de llamadas a API (sin cambios)
 const fetchResumen = async () => {
   // Simula una llamada a API
@@ -111,6 +114,7 @@ export default function VistaPreviaCierrePeriodo() {
     suma_pendiente: 0,
     suma_a_favor: 0,
 })
+  const [periodoCierre, setPeriodoCierre] = useState<PeriodoCierre | null>(null)
   const [proyecciones, setProyecciones] = useState<any>(null)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
   const cancelRef = React.useRef()
@@ -142,6 +146,8 @@ export default function VistaPreviaCierrePeriodo() {
       const data = await response.json();
       console.log(data)
       setSaldosApi(data.saldos)
+      setPeriodoCierre(data)
+      
       console.log(saldosApi)
 
   } catch (error) {
