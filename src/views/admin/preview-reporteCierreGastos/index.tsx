@@ -63,6 +63,8 @@ interface PeriodoCierre{
   id: number,
   mesInicio: string,
 }
+
+
 // Simulación de llamadas a API (sin cambios)
 const fetchResumen = async () => {
   // Simula una llamada a API
@@ -117,6 +119,7 @@ export default function VistaPreviaCierrePeriodo() {
   const [periodoCierre, setPeriodoCierre] = useState<PeriodoCierre | null>(null)
   const [proyecciones, setProyecciones] = useState<any>(null)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
+  const [gastosPorCategoria, setGastosPorCategoria] = useState<any[]>([])
   const cancelRef = React.useRef()
   const periodo = useSelector((state: any) => state.periodo.periodoActual)
   const toast = useToast()
@@ -125,11 +128,12 @@ export default function VistaPreviaCierrePeriodo() {
   const accentColor = useColorModeValue('navy.500', 'navy.400')
   
   useEffect(() => {
+    getSaldosData();
     fetchResumen().then(setResumen)
     fetchGastos().then(setGastos)
     fetchSaldos().then(setSaldos)
     fetchProyecciones().then(setProyecciones)
-    getSaldosData();
+    
   }, [])
   
   const getSaldosData = async () => {
@@ -147,8 +151,9 @@ export default function VistaPreviaCierrePeriodo() {
       console.log(data)
       setSaldosApi(data.saldos)
       setPeriodoCierre(data)
-      
-      console.log(saldosApi)
+      setGastosPorCategoria(data.gastos_por_categoria.gastos_por_categoria)
+      console.log(data.gastos_por_categoria.gastos_por_categoria)
+      console.log(gastosPorCategoria)
 
   } catch (error) {
       console.error("Error al sumar saldos:", error);
@@ -259,10 +264,10 @@ export default function VistaPreviaCierrePeriodo() {
   }
 
   const pieData = {
-    labels: gastos.map(gasto => gasto.concepto),
+    labels: gastosPorCategoria.map(gasto => gasto.categoria),
     datasets: [
       {
-        data: gastos.map(gasto => gasto.monto),
+        data: gastosPorCategoria.map(gasto => gasto.total),
         backgroundColor: [
           'rgba(0, 51, 102, 0.8)',
           'rgba(0, 102, 204, 0.8)',
@@ -305,8 +310,7 @@ export default function VistaPreviaCierrePeriodo() {
         <Tabs isFitted variant="enclosed">
           <TabList mb="1em">
             <Tab><Icon as={FaDollarSign} mr={2} /> Resumen</Tab>
-            <Tab><Icon as={FaUsers} mr={2} /> Saldos</Tab>
-            <Tab><Icon as={FaCalendar} mr={2} /> Proyecciones</Tab>
+
             <Tab><Icon as={FaFileAlt} mr={2} /> Informe</Tab>
           </TabList>
           <TabPanels>
@@ -345,6 +349,26 @@ export default function VistaPreviaCierrePeriodo() {
             <TabPanel>
               <Card>
                 <CardHeader>
+                  <Heading size="md">Informe de Cierre de Período</Heading>
+                </CardHeader>
+                <CardBody>
+                  <Box
+                    as="iframe"
+                    src="/placeholder.svg?text=Vista+Previa+PDF"
+                    width="100%"
+                    height="500px"
+                    borderRadius="md"
+                    mb={4}
+                  />
+                  <Button leftIcon={<Icon as={FaFileAlt} />} colorScheme="blue">
+                    Descargar Informe Completo
+                  </Button>
+                </CardBody>
+              </Card>
+            </TabPanel>
+            <TabPanel>
+              <Card>
+                <CardHeader>
                   <Heading size="md">Saldos de Propietarios</Heading>
                 </CardHeader>
                 <CardBody>
@@ -368,26 +392,7 @@ export default function VistaPreviaCierrePeriodo() {
                 </CardBody>
               </Card>
             </TabPanel>
-            <TabPanel>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Informe de Cierre de Período</Heading>
-                </CardHeader>
-                <CardBody>
-                  <Box
-                    as="iframe"
-                    src="/placeholder.svg?text=Vista+Previa+PDF"
-                    width="100%"
-                    height="500px"
-                    borderRadius="md"
-                    mb={4}
-                  />
-                  <Button leftIcon={<Icon as={FaFileAlt} />} colorScheme="blue">
-                    Descargar Informe Completo
-                  </Button>
-                </CardBody>
-              </Card>
-            </TabPanel>
+            
           </TabPanels>
         </Tabs>
         <Flex justify="flex-end" mt={8} gap={4}>
