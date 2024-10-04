@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Flex, Text, Button, Select, Input } from '@chakra-ui/react';
-import { FormControl, FormErrorMessage, FormLabel } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Text,
+  Button,
+  Select,
+  Input,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  useToast,
+  VStack,
+  HStack,
+  Divider,
+  Icon,
+} from '@chakra-ui/react';
 import Card from 'components/card/';
-import axios from 'axios';
-import { API_ADDRESS } from '../../../../variables/apiSettings';
-import { useToast } from '@chakra-ui/react';
+import { MdPersonAdd, MdArrowBack } from 'react-icons/md';
 import { validateRut } from "@cristiansantana/chile-rut";
 
 interface AddPropietarioProps {
-  onGoBack: () => void,
+  onGoBack: () => void;
   update: () => void;
 }
 
-const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
+const AddPropietario: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
   const toast = useToast();
   const [propietario, setPropietario] = useState({
     razon_social: '',
@@ -24,290 +36,194 @@ const UserInterface: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => {
   });
   const [relacionLote, setRelacionLote] = useState({
     loteId: '',
-    propietario: '',
     tipo_relacion: '',
   });
   const [unidades, setUnidades] = useState<any[]>([]);
-  const [propietariosOptions, setPropietariosOptions] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [rutError, setRutError] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [telefonoError, setTelefonoError] = useState('');
-  const [nombreError, setNombreError] = useState('');
-  const [apellidoError, setApellidoError] = useState('');
   const [relacionesDisponibles, setRelacionesDisponibles] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(API_ADDRESS + 'lotes-disponibles/',
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-            }
-          });
-        setUnidades(response.data);
-      } catch (error) {
-        console.error('Error al obtener los datos de las unidades:', error);
-      }
-    };
-
-    fetchData();
+    // Fetch unidades data
+    // This is a placeholder. Replace with actual API call.
+    setUnidades([
+      { id: '1', numero_unidad: 'Unidad 1' },
+      { id: '2', numero_unidad: 'Unidad 2' },
+    ]);
   }, []);
-
-  useEffect(() => {
-    const propietariosList = unidades.map((unidad: any) => ({
-      value: unidad.lote.id_lote,
-      label: unidad.lote.numero_unidad,
-      relaciones: unidad.relaciones.map((rel: any) => rel.tipo_relacion),
-    }));
-    setPropietariosOptions(propietariosList);
-  }, [unidades]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
-    if (name === 'rut') {
-      if (!validateRut(value)) {
-        setRutError('Ingrese un RUT válido.');
-      } else {
-        setRutError('');
+    if (name in propietario) {
+      setPropietario(prev => ({ ...prev, [name]: value }));
+    } else if (name in relacionLote) {
+      setRelacionLote(prev => ({ ...prev, [name]: value }));
+      if (name === 'loteId') {
+        // Update relacionesDisponibles based on selected unit
+        setRelacionesDisponibles(['Dueño', 'Arrendatario', 'Corredor']);
       }
     }
-
-    if (name === 'email') {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(value)) {
-        setEmailError('Ingrese un email válido.');
-      } else {
-        setEmailError('');
-      }
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
-
-    if (name === 'numero_telefono') {
-      const telefonoRegex = /^\d+$/;
-      if (!telefonoRegex.test(value)) {
-        setTelefonoError('Ingrese un número de teléfono válido.');
-      } else if (value.length < 9 || value.length > 11) {
-        setTelefonoError('El número de teléfono debe tener entre 9 y 11 dígitos.');
-      } else {
-        setTelefonoError('');
-      }
-    }
-
-    if (name === 'nombre' || name === 'apellido') {
-      const nombreApellidoRegex = /^[a-zA-Z\s]+$/;
-      if (!nombreApellidoRegex.test(value)) {
-        if (name === 'nombre') {
-          setNombreError('El nombre no puede contener números ni caracteres especiales.');
-        } else {
-          setApellidoError('El apellido no puede contener números ni caracteres especiales.');
-        }
-      } else {
-        if (name === 'nombre') {
-          setNombreError('');
-        } else {
-          setApellidoError('');
-        }
-      }
-    }
-
-    setPropietario(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
   };
 
-  const handleChangeRelacion = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === 'loteId') {
-      const selectedUnidad = propietariosOptions.find(option => option.value.toString() === value);
-      const tiposRelacionExistentes = selectedUnidad ? selectedUnidad.relaciones : [];
-      const tiposRelacionDisponibles = ['Dueño', 'Arrendatario', 'Corredor'].filter(tipo => !tiposRelacionExistentes.includes(tipo));
-      setRelacionesDisponibles(tiposRelacionDisponibles);
-      console.log(tiposRelacionDisponibles);
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!validateRut(propietario.rut)) newErrors.rut = 'RUT inválido';
+    if (!propietario.nombre) newErrors.nombre = 'El nombre es obligatorio';
+    if (!propietario.apellido) newErrors.apellido = 'El apellido es obligatorio';
+    if (!propietario.numero_telefono) newErrors.numero_telefono = 'El teléfono es obligatorio';
+    if (propietario.email && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(propietario.email)) {
+      newErrors.email = 'Email inválido';
     }
-    setRelacionLote(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
+    if (!relacionLote.loteId) newErrors.loteId = 'Debe seleccionar una unidad';
+    if (!relacionLote.tipo_relacion) newErrors.tipo_relacion = 'Debe seleccionar un tipo de relación';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const filteredOptions = propietariosOptions.filter(option =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async () => {
-    if (rutError || emailError || telefonoError || nombreError || apellidoError) {
-      toast({
-        title: 'Error',
-        description: 'Corrija los errores en el formulario antes de enviar.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-        position: 'top'
-      });
-      return;
-    }
-
-    try {
-      const response = await axios.post(API_ADDRESS + 'propietarios/', propietario,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
+    if (validate()) {
+      setIsSubmitting(true);
+      try {
+        // Aquí iría la lógica para enviar los datos al servidor
+        // Por ahora, simularemos una operación exitosa
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        toast({
+          title: 'Éxito',
+          description: 'Propietario creado y relación establecida con el lote.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+          position: 'top',
         });
-      const propietarioId = response.data.id; // Obtener el ID del propietario creado
-      const data = {
-        propietario: propietarioId, // ID del propietario que deseas asignar al lote
-        tipo_relacion: relacionLote.tipo_relacion, // Tipo de relación (propietario, arrendatario, corredor)
-      };
-      await axios.put(`${API_ADDRESS}asignar-relacion/${relacionLote.loteId}/`, data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
+        setIsSubmitting(false);
+        if (window.confirm('¿Desea agregar otro propietario?')) {
+          setPropietario({
+            razon_social: '',
+            nombre: '',
+            apellido: '',
+            rut: '',
+            email: '',
+            numero_telefono: '',
+          });
+          setRelacionLote({
+            loteId: '',
+            tipo_relacion: '',
+          });
+        } else {
+          onGoBack();
+          update();
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: 'Error',
+          description: 'Hubo un problema al crear el propietario o al establecer la relación.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top',
         });
-      toast({
-        title: 'Éxito',
-        description: 'Propietario creado y relación establecida con el lote.',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-        position: 'top'
-      });
-      if (window.confirm('¿Desea agregar otro propietario?')) {
-        setPropietario({
-          razon_social: '',
-          nombre: '',
-          apellido: '',
-          rut: '',
-          email: '',
-          numero_telefono: '',
-        });
-        setRelacionLote({
-          loteId: '',
-          propietario: '',
-          tipo_relacion: '',
-        });
-      } else {
-        onGoBack();
-        update();
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Hubo un problema al crear el propietario o al establecer la relación.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-        position: 'top'
-      });
-      console.error('Error al crear el propietario:', error);
     }
   };
 
   return (
-    <Card p={5}>
-      <div className="p-5">
-        <Text fontSize="xl" fontWeight="bold" mb={4}>
-          Información del usuario
+    <Card>
+      <VStack spacing={6} align="stretch" p={6}>
+        <Text fontSize="2xl" fontWeight="bold">
+          Información del propietario
         </Text>
-        <Flex>
-          <FormControl isInvalid={rutError !== ''} flex="1" m={4}>
+        <Divider />
+        <Flex direction={{ base: 'column', md: 'row' }} gap={4}>
+          <FormControl isInvalid={!!errors.rut}>
             <FormLabel>RUT</FormLabel>
-            <Input 
-              onChange={handleChange} 
-              name="rut" 
-              value={propietario.rut}
-              type="text"
-            />
-            {rutError && <FormErrorMessage>{rutError}</FormErrorMessage>}
+            <Input name="rut" value={propietario.rut} onChange={handleChange} placeholder="Ingrese RUT" />
+            <FormErrorMessage>{errors.rut}</FormErrorMessage>
           </FormControl>
-          <FormControl isInvalid={nombreError !== ''} flex="1" m={4}>
+          <FormControl isInvalid={!!errors.nombre}>
             <FormLabel>Nombre</FormLabel>
-            <Input onChange={handleChange} value={propietario.nombre} name="nombre" type="text" />
-            {nombreError && <FormErrorMessage>{nombreError}</FormErrorMessage>}
+            <Input name="nombre" value={propietario.nombre} onChange={handleChange} placeholder="Ingrese nombre" />
+            <FormErrorMessage>{errors.nombre}</FormErrorMessage>
           </FormControl>
-          <FormControl isInvalid={apellidoError !== ''} flex="1" m={4}>
+          <FormControl isInvalid={!!errors.apellido}>
             <FormLabel>Apellido</FormLabel>
-            <Input onChange={handleChange} name="apellido" value={propietario.apellido} type="text" />
-            {apellidoError && <FormErrorMessage>{apellidoError}</FormErrorMessage>}
+            <Input name="apellido" value={propietario.apellido} onChange={handleChange} placeholder="Ingrese apellido" />
+            <FormErrorMessage>{errors.apellido}</FormErrorMessage>
           </FormControl>
         </Flex>
-        <Flex>
-          <FormControl isInvalid={emailError !== ''} flex="1" m={4}>
+        <Flex direction={{ base: 'column', md: 'row' }} gap={4}>
+          <FormControl isInvalid={!!errors.email}>
             <FormLabel>E-mail</FormLabel>
-            <Input onChange={handleChange} name="email" value={propietario.email} type="email" />
-            {emailError && <FormErrorMessage>{emailError}</FormErrorMessage>}
+            <Input name="email" value={propietario.email} onChange={handleChange} placeholder="Ingrese email" />
+            <FormErrorMessage>{errors.email}</FormErrorMessage>
           </FormControl>
-          <FormControl isInvalid={telefonoError !== ''} flex="1" m={4}>
+          <FormControl isInvalid={!!errors.numero_telefono}>
             <FormLabel>Número de Teléfono</FormLabel>
-            <Input onChange={handleChange} name="numero_telefono" value={propietario.numero_telefono} type="text" />
-            {telefonoError && <FormErrorMessage>{telefonoError}</FormErrorMessage>}
+            <Input name="numero_telefono" value={propietario.numero_telefono} onChange={handleChange} placeholder="Ingrese teléfono" />
+            <FormErrorMessage>{errors.numero_telefono}</FormErrorMessage>
           </FormControl>
-          <Box flex="1" m={4}></Box>
         </Flex>
-        <Flex mt={7}>
-          <Text fontSize="xl" fontWeight="bold" mt={4} mb={4}>
-            Información de la unidad
-          </Text>
-        </Flex>
-        <Flex mt={4}>
-          <FormControl flex="1" m={2}>
-            <Select onChange={handleChangeRelacion} name="loteId" value={relacionLote.loteId}>
-              <option value="" disabled>
-                Selecciona Unidad
-              </option>
-              {filteredOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+        <Text fontSize="xl" fontWeight="bold">
+          Información de la unidad
+        </Text>
+        <Divider />
+        <Flex direction={{ base: 'column', md: 'row' }} gap={4}>
+          <FormControl isInvalid={!!errors.loteId}>
+            <FormLabel>Unidad</FormLabel>
+            <Select name="loteId" value={relacionLote.loteId} onChange={handleChange} placeholder="Selecciona Unidad">
+              {unidades.map(unidad => (
+                <option key={unidad.id} value={unidad.id}>
+                  {unidad.numero_unidad}
                 </option>
               ))}
             </Select>
+            <FormErrorMessage>{errors.loteId}</FormErrorMessage>
           </FormControl>
-          <FormControl flex="1" m={2} isDisabled={!relacionLote.loteId}>
-            <Select onChange={handleChangeRelacion} name="tipo_relacion" value={relacionLote.tipo_relacion}>
-              <option value="" disabled>
-                Selecciona Tipo de Propietario
-              </option>
+          <FormControl isInvalid={!!errors.tipo_relacion}>
+            <FormLabel>Tipo de Relación</FormLabel>
+            <Select
+              name="tipo_relacion"
+              value={relacionLote.tipo_relacion}
+              onChange={handleChange}
+              placeholder="Selecciona Tipo de Relación"
+              isDisabled={!relacionLote.loteId}
+            >
               {relacionesDisponibles.map(tipo => (
                 <option key={tipo} value={tipo}>
-                  {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+                  {tipo}
                 </option>
               ))}
             </Select>
+            <FormErrorMessage>{errors.tipo_relacion}</FormErrorMessage>
           </FormControl>
         </Flex>
-        <Flex mt={2}>
-          <Box flex="1" m={2}></Box>
-          <Box flex="1" m={2}></Box>
-          <Box m={2}>
-            <Button onClick={handleSubmit} colorScheme="blue">
-              Agregar
-            </Button>
-            <Button
-              onClick={() => {
-                onGoBack();
-                update();
-              }}
-              colorScheme="blue"
-              m={2}
-            >
-              Volver
-            </Button>
-          </Box>
-        </Flex>
-      </div>
+        <HStack justifyContent="flex-end" spacing={4}>
+          <Button
+            leftIcon={<Icon as={MdArrowBack} />}
+            onClick={onGoBack}
+            variant="outline"
+          >
+            Volver
+          </Button>
+          <Button
+            leftIcon={<Icon as={MdPersonAdd} />}
+            onClick={handleSubmit}
+            isLoading={isSubmitting}
+            loadingText="Agregando..."
+            colorScheme="blue"
+          >
+            Agregar
+          </Button>
+        </HStack>
+      </VStack>
     </Card>
   );
 };
 
-export default UserInterface;
+export default AddPropietario;

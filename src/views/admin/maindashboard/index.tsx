@@ -74,7 +74,7 @@ export default function EnhancedDashboard() {
 
         const [sumaSaldos, gastosPorCategorias] = await Promise.all([
           axios.get(`${API_ADDRESS}sumasaldos/`, { headers }),
-          axios.get(`${API_ADDRESS}gastos-por-categoria/`, { headers }),
+          axios.get(`${API_ADDRESS}gastos-por-categoria-por-periodo/`+periodoSeleccionado+'/', { headers }),
         ])
 
         setSaldos(sumaSaldos.data)
@@ -139,25 +139,14 @@ export default function EnhancedDashboard() {
       </Grid>
 
       <Grid templateColumns={{ base: "1fr", lg: "2fr 1fr" }} gap={6}>
-        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6 }}>
-          <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
-            <CardHeader>
-              <Heading size="md" color={textColor}>Gastos Mensuales</Heading>
-            </CardHeader>
-            <CardBody>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyExpenses}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="total" stroke="#8884d8" activeDot={{ r: 8 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardBody>
-          </Card>
-        </motion.div>
+      <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1 }}>
+        <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
+        
+          <CardBody>
+            <AvisosCard />
+          </CardBody>
+        </Card>
+      </motion.div>
 
         <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.7 }}>
           <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
@@ -165,7 +154,7 @@ export default function EnhancedDashboard() {
               <Heading size="md" color={textColor}>Gastos por Categoría</Heading>
             </CardHeader>
             <CardBody>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     data={dataPieChart}
@@ -175,7 +164,7 @@ export default function EnhancedDashboard() {
                     cy="50%"
                     outerRadius={80}
                     fill="#8884d8"
-                    label
+                   
                   >
                     {dataPieChart.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -190,53 +179,8 @@ export default function EnhancedDashboard() {
         </motion.div>
       </Grid>
 
-      <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }}>
-          <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
-            <CardHeader>
-              <Heading size="md" color={textColor}>Top 5 Gastos</Heading>
-            </CardHeader>
-            <CardBody>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topExpenses}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="categoria" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="total" fill="#8884d8">
-                    {topExpenses.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardBody>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.9 }}>
-          <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
-            <CardHeader>
-              <Heading size="md" color={textColor}>Calendario de Eventos</Heading>
-            </CardHeader>
-            <CardBody>
-              <MiniCalendar />
-            </CardBody>
-          </Card>
-        </motion.div>
-      </Grid>
-
-      <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1 }}>
-        <Card bg={bgColor} shadow="lg" rounded="2xl" overflow="hidden" transition="all 0.3s" _hover={{ shadow: "xl" }}>
-          <CardHeader>
-            <Heading size="md" color={textColor}>Avisos Importantes</Heading>
-          </CardHeader>
-          <CardBody>
-            <AvisosCard />
-          </CardBody>
-        </Card>
-      </motion.div>
+    
+      
     </motion.div>
   )
 }
