@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, forwardRef } from "react";
+import React, { useState, useCallback, useMemo, forwardRef, useEffect } from "react";
 import {
   Box,
   Card,
@@ -20,9 +20,21 @@ import {
   FormLabel,
   Button,
   chakra,
-  shouldForwardProp
+  shouldForwardProp,
+  useColorModeValue,
+  Text,
+  VStack,
+  HStack,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Icon
 } from "@chakra-ui/react";
-import { MdEdit, MdVisibility, MdDelete, MdAdd } from "react-icons/md";
+import { MdEdit, MdVisibility, MdDelete, MdAdd, MdInfo } from "react-icons/md";
 import {
   createColumnHelper,
   flexRender,
@@ -37,11 +49,6 @@ import { API_ADDRESS } from 'variables/apiSettings';
 import { motion, isValidMotionProp, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
-
-// Importaciones de componentes modales
-const ViewModal = React.lazy(() => import("../../propietarios/components/ViewModal"));
-const EditModal = React.lazy(() => import("../../propietarios/components/EditModal"));
-const ConfirmModal = React.lazy(() => import("../../propietarios/components/ConfirmModal"));
 
 type RowObj = {
   [key: string]: any;
@@ -58,7 +65,6 @@ interface Recaudacion {
   descripcion: string;
 }
 
-// Crear componentes Chakra con Framer Motion
 const MotionBox = chakra(motion.div, {
   shouldForwardProp: (prop) => isValidMotionProp(prop) || shouldForwardProp(prop),
 });
@@ -107,16 +113,14 @@ const AddRecaudacionForm = React.memo(({ saldoId, loteId, onSubmit, onCancel }: 
 
   const handleSubmit = useCallback(() => {
     onSubmit(newRecaudacion);
-    // Redireccion a admin/recaudaciones
     navigate("/admin/recaudaciones");
-  }, [newRecaudacion, onSubmit]);
+  }, [newRecaudacion, onSubmit, navigate]);
 
   return (
     <MotionBox
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      
     >
       <Box bg="gray.50" p={4} borderRadius="md">
         <FormControl>
@@ -171,26 +175,35 @@ const AddRecaudacionForm = React.memo(({ saldoId, loteId, onSubmit, onCancel }: 
 });
 
 export default function ComplexTable(props: { tableData: any, onUpdate: (updatedData: any) => void, onDelete: (id: string) => void, hiddenColumns: any, updateData: () => void }) {
-  const { tableData, onUpdate, onDelete, hiddenColumns } = props;
+  const { tableData, onUpdate, onDelete, hiddenColumns, updateData } = props;
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [modalData, setModalData] = useState<RowObj | null>(null);
   const [editData, setEditData] = useState<RowObj | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const updateData = props.updateData;
   const periodoSeleccionado = useSelector((state: any) => state.periodo.periodoActual);
-  const openModal = useCallback((data: RowObj) => {
+
+  const bgColor = useColorModeValue("white", "gray.800");
+  const headerBgColor = useColorModeValue("blue.500", "blue.200");
+  const headerTextColor = useColorModeValue("white", "gray.800");
+  const closeButtonColor = useColorModeValue("white", "gray.800");
+  const boxBgColor = useColorModeValue("gray.50", "gray.700");
+  const boxTextColor = useColorModeValue("gray.600", "gray.400");
+  const editHeaderBgColor = useColorModeValue("green.500", "green.200");
+  const deleteHeaderBgColor = useColorModeValue("red.500", "red.200");
+
+  const openViewModal = useCallback((data: RowObj) => {
     setModalData(data);
-    setIsModalOpen(true);
+    setIsViewModalOpen(true);
   }, []);
 
-  const closeModal = useCallback(() => {
-    setIsModalOpen(false);
+  const closeViewModal = useCallback(() => {
+    setIsViewModalOpen(false);
     setModalData(null);
   }, []);
 
@@ -216,7 +229,8 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
 
   const handleSave = useCallback((updatedData: any) => {
     onUpdate(updatedData);
-  }, [onUpdate]);
+    closeEditModal();
+  }, [onUpdate, closeEditModal]);
 
   const handleDelete = useCallback(() => {
     if (deleteId) {
@@ -231,7 +245,6 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
 
   const handleSubmitRecaudacion = useCallback(async (newRecaudacion: Recaudacion) => {
     try {
-      console.log("newRecaudacionPEriodo", periodoSeleccionado);
       await axios.post(
         `${API_ADDRESS}recaudaciones/`,
         {
@@ -247,12 +260,11 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
         }
       );
       setExpandedRow(null);
-      // Aquí podrías actualizar los datos de la tabla si es necesario
       updateData();
     } catch (error) {
       console.error("Error al agregar recaudación:", error);
     }
-  }, []);
+  }, [periodoSeleccionado, updateData]);
 
   const columnHelper = createColumnHelper<RowObj>();
 
@@ -267,7 +279,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
             if (key === "Razon Social") {
               return "";
             } else {
-              return <Th style={{ margin:"1px",padding: "1px", minWidth: "20px", maxWidth: "120px", fontSize:"12px" }}>{key}</Th>;
+              return <Th style={{ margin:"1px", padding: "1px", minWidth: "20px", maxWidth: "120px", fontSize:"12px" }}>{key}</Th>;
             }
           },
           cell: (info) => {
@@ -288,10 +300,9 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
               return " ";
             } else {
               return <MotionTd
-                style={{ margin:"1px",padding: "1px", minWidth: "20px", maxWidth: "150px", fontSize:"14px" }}
+                style={{ margin:"1px", padding: "1px", minWidth: "20px", maxWidth: "150px", fontSize:"14px" }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-         
               >
                 {value}
               </MotionTd>;
@@ -311,10 +322,10 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
               whileTap={{ scale: 0.9 }}
               isRound={true}
               aria-label="Ver"
-              style={{padding: "2px", margin:"1px",fontSize: "13px"}}
+              style={{padding: "2px", margin:"1px", fontSize: "13px"}}
               size="sm"
               icon={<MdVisibility />}
-              onClick={() => openModal(info.row.original)}
+              onClick={() => openViewModal(info.row.original)}
             />
             <MotionIconButton
               whileHover={{ scale: 1.1 }}
@@ -322,7 +333,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
               isRound={true}
               size="sm"
               aria-label="Editar"
-              style={{padding: "2px", margin:"1px",fontSize: "13px"}}
+              style={{padding: "2px", margin:"1px", fontSize: "13px"}}
               icon={<MdEdit />}
               onClick={() => openEditModal(info.row.original)}
             />
@@ -332,7 +343,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
               isRound={true}
               size="sm"
               aria-label="Eliminar"
-              style={{padding: "2px", margin:"1px",fontSize: "13px"}}
+              style={{padding: "2px", margin:"1px", fontSize: "13px"}}
               icon={<MdDelete />}
               onClick={() => openConfirmModal(info.row.original["ID"])}
             />
@@ -342,7 +353,7 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
               isRound={true}
               size="sm"
               aria-label={expandedRow === info.row.original["ID"] ? "Cerrar Recaudación" : "Agregar Recaudación"}
-              style={{padding: "2px", margin:"1px",fontSize: "13px"}}
+              style={{padding: "2px", margin:"1px", fontSize: "13px"}}
               icon={<MdAdd />}
               onClick={() => handleAddRecaudacion(info.row.original["ID"])}
             />
@@ -352,9 +363,9 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
     );
 
     return baseColumns;
-  }, [tableData, hiddenColumns, expandedRow, openModal, openEditModal, openConfirmModal, handleAddRecaudacion, columnHelper]);
+  }, [tableData, hiddenColumns, expandedRow, openViewModal, openEditModal, openConfirmModal, handleAddRecaudacion, columnHelper]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (tableData && tableData.length > 0) {
       setIsLoading(false);
     }
@@ -411,7 +422,6 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                  
                       >
                         {row.getVisibleCells().map((cell) => (
                           <MotionTd key={cell.id}>
@@ -428,7 +438,6 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                         
                           >
                             <Td colSpan={columns.length}>
                               <AddRecaudacionForm
@@ -449,11 +458,146 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
           </Table>
         </TableContainer>
       </CardBody>
-      <React.Suspense fallback={<Spinner />}>
-        {isModalOpen && <ViewModal isOpen={isModalOpen} onClose={closeModal} data={modalData} />}
-        {isEditModalOpen && <EditModal isOpen={isEditModalOpen} onClose={closeEditModal} data={editData} onSave={handleSave} />}
-        {isConfirmModalOpen && <ConfirmModal isOpen={isConfirmModalOpen} onClose={closeConfirmModal} onConfirm={handleDelete} />}
-      </React.Suspense>
+
+      {/* View Modal */}
+      <Modal isOpen={isViewModalOpen} onClose={closeViewModal} size="xl">
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <ModalContent 
+          bg={bgColor}
+          borderRadius="xl"
+          boxShadow="xl"
+        >
+          <ModalHeader 
+            bg={headerBgColor}
+            color={headerTextColor}
+            borderTopRadius="xl"
+            p={6}
+          >
+            <Flex align="center">
+              <Icon as={MdInfo} boxSize={6} mr={3} />
+              <Text fontSize="2xl" fontWeight="bold">Detalle del Registro</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton color={closeButtonColor} />
+          <ModalBody p={6}>
+            {modalData && (
+              <VStack spacing={6} align="stretch">
+                {Object.entries(modalData).map(([key, value]) => (
+                  <Box key={key} bg={boxBgColor} p={4} borderRadius="md">
+                    <Text fontWeight="bold" fontSize="sm" color={boxTextColor} mb={1}>
+                      {key}:
+                    </Text>
+                    <Text fontSize="lg">{value as string}</Text>
+                  </Box>
+                ))}
+              </VStack>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={closeViewModal} size="lg" borderRadius="full">
+              Cerrar
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={closeEditModal} size="xl">
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <ModalContent 
+          bg={bgColor}
+          borderRadius="xl"
+          boxShadow="xl"
+        >
+          <ModalHeader 
+            bg={editHeaderBgColor}
+            color={headerTextColor}
+            borderTopRadius="xl"
+            p={6}
+          >
+            <Flex align="center">
+              <Icon as={MdEdit} boxSize={6} mr={3} />
+              <Text fontSize="2xl" fontWeight="bold">Editar Registro</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton color={closeButtonColor} />
+          <ModalBody p={6}>
+            {editData && (
+              <VStack spacing={6} align="stretch">
+                {Object.entries(editData).map(([key, value]) => (
+                  <FormControl key={key}>
+                    <FormLabel fontWeight="bold" color={boxTextColor}>
+                      {key}
+                    </FormLabel>
+                    <Input
+                      value={value as string}
+                      onChange={(e) =>
+                        setEditData({ ...editData, [key]: e.target.value })
+                      }
+                      bg={boxBgColor}
+                      borderColor={boxTextColor}
+                      _hover={{ borderColor: "green.400" }}
+                      _focus={{ borderColor: "green.400", boxShadow: "0 0 0 1px green.400" }}
+                    />
+                  </FormControl>
+                ))}
+              </VStack>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <HStack spacing={4}>
+              <Button colorScheme="green" onClick={() => handleSave(editData!)} size="lg" borderRadius="full">
+                Guardar
+              </Button>
+              <Button variant="outline" onClick={closeEditModal} size="lg" borderRadius="full">
+                Cancelar
+              </Button>
+            </HStack>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Confirm Delete Modal */}
+      <Modal isOpen={isConfirmModalOpen} onClose={closeConfirmModal} isCentered>
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <ModalContent 
+          bg={bgColor}
+          borderRadius="xl"
+          boxShadow="xl"
+          maxW="400px"
+        >
+          <ModalHeader 
+            bg={deleteHeaderBgColor}
+            color={headerTextColor}
+            borderTopRadius="xl"
+            p={6}
+          >
+            <Flex align="center">
+              <Icon as={MdDelete} boxSize={6} mr={3} />
+              <Text fontSize="2xl" fontWeight="bold">Confirmar Eliminación</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton color={closeButtonColor} />
+          <ModalBody p={6}>
+            <Text fontSize="lg" fontWeight="medium">
+              ¿Estás seguro de que deseas eliminar este registro?
+            </Text>
+            <Text fontSize="md" color={boxTextColor} mt={2}>
+              Esta acción no se puede deshacer.
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <HStack spacing={4}>
+              <Button colorScheme="red" onClick={handleDelete} size="lg" borderRadius="full">
+                Eliminar
+              </Button>
+              <Button variant="outline" onClick={closeConfirmModal} size="lg" borderRadius="full">
+                Cancelar
+              </Button>
+            </HStack>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Card>
   );
 }

@@ -1,4 +1,6 @@
-import React, { useState, useCallback, useMemo, Suspense } from "react";
+"use client"
+
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
   Box,
   Flex,
@@ -9,10 +11,10 @@ import {
   Tr,
   Th,
   Td,
-  TableContainer,
   Spinner,
   Text,
   VStack,
+  HStack,
   useColorModeValue,
   Checkbox,
   Button,
@@ -26,10 +28,9 @@ import {
   Input,
   FormControl,
   FormLabel,
-  Grid,
-  GridItem,
+  Icon
 } from "@chakra-ui/react";
-import { MdEdit, MdVisibility, MdDelete } from "react-icons/md";
+import { MdEdit, MdVisibility, MdDelete, MdInfo } from "react-icons/md";
 import {
   createColumnHelper,
   flexRender,
@@ -39,7 +40,6 @@ import {
   SortingState,
   RowSelectionState,
 } from "@tanstack/react-table";
-import { useVirtual } from "react-virtual";
 
 type RowObj = {
   [key: string]: any;
@@ -79,6 +79,19 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
   const textColor = useColorModeValue("gray.800", "white");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const hoverBgColor = useColorModeValue("gray.100", "gray.700");
+
+
+  const modalBgColor = useColorModeValue("white", "gray.800");
+  const modalHeaderBgColorView = useColorModeValue("blue.500", "blue.200");
+  const modalHeaderTextColorView = useColorModeValue("white", "gray.800");
+  const modalHeaderBgColorEdit = useColorModeValue("green.500", "green.200");
+  const modalHeaderTextColorEdit = useColorModeValue("white", "gray.800");
+  const modalHeaderBgColorDelete = useColorModeValue("red.500", "red.200");
+  const modalHeaderTextColorDelete = useColorModeValue("white", "gray.800");
+  const modalCloseButtonColor = useColorModeValue("white", "gray.800");
+  const modalBodyBgColor = useColorModeValue("gray.50", "gray.700");
+  const modalBodyTextColor = useColorModeValue("gray.600", "gray.400");
+
 
   const openViewModal = (data: RowObj) => {
     setModalData(data);
@@ -133,30 +146,37 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
     columnHelper.display({
       id: "select",
       header: ({ table }) => (
-        <Checkbox
-          isChecked={table.getIsAllRowsSelected()}
-          isIndeterminate={table.getIsSomeRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
-        />
+        <Box width="20px">
+          <Checkbox
+            isChecked={table.getIsAllRowsSelected()}
+            isIndeterminate={table.getIsSomeRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            size="sm"
+          />
+        </Box>
       ),
       cell: ({ row }) => (
-        <Checkbox
-          isChecked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-        />
+        <Box width="20px">
+          <Checkbox
+            isChecked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            size="sm"
+          />
+        </Box>
       ),
+      size: 20,
     }),
     ...Object.keys(tableData[0] || {})
       .filter((key) => !hiddenColumns.includes(key))
       .map((key) =>
         columnHelper.accessor(key, {
-          header: () => <Th>{key}</Th>,
+          header: () => <Text fontWeight="bold">{key}</Text>,
           cell: (info) => info.getValue(),
         })
       ),
     columnHelper.display({
       id: "actions",
-      header: () => <Th>Acciones</Th>,
+      header: () => <Text fontWeight="bold">Acciones</Text>,
       cell: ({ row }) => (
         <Flex>
           <IconButton
@@ -206,13 +226,24 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
 
   const { rows } = table.getRowModel();
 
-  const parentRef = React.useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [tableHeight, setTableHeight] = useState(400);
 
-  const rowVirtualizer = useVirtual({
-    parentRef,
-    size: rows.length,
-    overscan: 10,
-  });
+  useEffect(() => {
+    const updateTableHeight = () => {
+      if (tableContainerRef.current) {
+        const windowHeight = window.innerHeight;
+        const tableTop = tableContainerRef.current.getBoundingClientRect().top;
+        const newHeight = windowHeight - tableTop - 20; // 20px for some bottom margin
+        setTableHeight(Math.max(newHeight, 400)); // Ensure a minimum height of 400px
+      }
+    };
+
+    updateTableHeight();
+    window.addEventListener('resize', updateTableHeight);
+
+    return () => window.removeEventListener('resize', updateTableHeight);
+  }, []);
 
   if (isLoading) {
     return (
@@ -223,9 +254,9 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
             speed="0.65s"
             emptyColor="gray.200"
             color="blue.500"
-            size="md"
+            size="xl"
           />
-          <Text fontSize="sm" fontWeight="medium" color={textColor}>
+          <Text fontSize="lg" fontWeight="medium" color={textColor}>
             Cargando datos...
           </Text>
         </VStack>
@@ -234,7 +265,7 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
   }
 
   return (
-    <Box bg={bgColor} borderRadius="lg" overflow="hidden" boxShadow="md">
+    <Box bg={bgColor} borderRadius="lg" overflow="hidden" boxShadow="xl">
       {onMultipleSelect && (
         <Flex justify="flex-end" p={4}>
           <Button
@@ -246,8 +277,24 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
           </Button>
         </Flex>
       )}
-      <TableContainer ref={parentRef} height="400px" overflowY="auto">
-        <Table variant="simple" size="sm">
+      <Box
+        height={`${tableHeight}px`}
+        overflowY="auto"
+        position="relative"
+        css={{
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            width: '10px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'gray',
+            borderRadius: '24px',
+          },
+        }}
+      >
+        <Table variant="simple" size="sm" layout="fixed" width="100%">
           <Thead position="sticky" top={0} zIndex={1} bg={bgColor}>
             {table.getHeaderGroups().map((headerGroup) => (
               <Tr key={headerGroup.id}>
@@ -256,7 +303,7 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
                     cursor="pointer"
-                    px={2}
+                    px={1}
                     py={2}
                     borderColor={borderColor}
                     color={textColor}
@@ -264,6 +311,7 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
                     fontSize="xs"
                     textTransform="uppercase"
                     _hover={{ bg: hoverBgColor }}
+                    width={header.column.id === 'select' ? "20px" : "auto"}
                   >
                     {flexRender(
                       header.column.columnDef.header,
@@ -275,111 +323,169 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
             ))}
           </Thead>
           <Tbody>
-            {rowVirtualizer.virtualItems.map((virtualRow) => {
-              const row = rows[virtualRow.index];
-              return (
-                <Tr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <Td
-                      key={cell.id}
-                      px={2}
-                      py={1}
-                      borderColor={borderColor}
-                      color={textColor}
-                      fontSize="xs"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </Td>
-                  ))}
-                </Tr>
-              );
-            })}
+            {rows.map((row) => (
+              <Tr key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <Td
+                    key={cell.id}
+                    px={1}
+                    py={2}
+                    borderColor={borderColor}
+                    color={textColor}
+                    fontSize="xs"
+                    width={cell.column.id === 'select' ? "20px" : "auto"}
+                  >
+                    {flexRender(
+                      cell.column.columnDef.cell,
+                      cell.getContext()
+                    )}
+                  </Td>
+                ))}
+              </Tr>
+            ))}
           </Tbody>
         </Table>
-      </TableContainer>
+      </Box>
 
-      {/* View Modal */}
-      <Modal isOpen={isViewModalOpen} onClose={closeViewModal} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Detalle del Registro</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {modalData && (
-              <VStack spacing={4} align="stretch">
-                {Object.entries(modalData).map(([key, value]) => (
-                  <Box key={key}>
-                    <Text fontWeight="bold">{key}:</Text>
-                    <Text>{value as string}</Text>
-                  </Box>
-                ))}
-              </VStack>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" onClick={closeViewModal}>
-              Cerrar
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+   {/* View Modal */}
+<Modal isOpen={isViewModalOpen} onClose={closeViewModal} size="xl">
+  <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+  <ModalContent 
+    bg={modalBgColor}
+    borderRadius="xl"
+    boxShadow="xl"
+  >
+    <ModalHeader 
+      bg={modalHeaderBgColorView} 
+      color={modalHeaderTextColorView}
+      borderTopRadius="xl"
+      p={6}
+    >
+      <Flex align="center">
+        <Icon as={MdInfo} boxSize={6} mr={3} />
+        <Text fontSize="2xl" fontWeight="bold">Detalle del Registro</Text>
+      </Flex>
+    </ModalHeader>
+    <ModalCloseButton color={modalCloseButtonColor} />
+    <ModalBody p={6}>
+      {modalData && (
+        <VStack spacing={6} align="stretch">
+          {Object.entries(modalData).map(([key, value]) => (
+            <Box key={key} bg={modalBodyBgColor} p={4} borderRadius="md">
+              <Text fontWeight="bold" fontSize="sm" color={modalBodyTextColor} mb={1}>
+                {key}:
+              </Text>
+              <Text fontSize="lg">{value as string}</Text>
+            </Box>
+          ))}
+        </VStack>
+      )}
+    </ModalBody>
+    <ModalFooter>
+      <Button colorScheme="blue" onClick={closeViewModal} size="lg" borderRadius="full">
+        Cerrar
+      </Button>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
 
-      {/* Edit Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={closeEditModal} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Editar Registro</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {editData && (
-              <VStack spacing={4} align="stretch">
-                {Object.entries(editData).map(([key, value]) => (
-                  <FormControl key={key}>
-                    <FormLabel>{key}</FormLabel>
-                    <Input
-                      value={value as string}
-                      onChange={(e) =>
-                        setEditData({ ...editData, [key]: e.target.value })
-                      }
-                    />
-                  </FormControl>
-                ))}
-              </VStack>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={() => handleSave(editData!)}>
-              Guardar
-            </Button>
-            <Button variant="ghost" onClick={closeEditModal}>
-              Cancelar
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+{/* Edit Modal */}
+<Modal isOpen={isEditModalOpen} onClose={closeEditModal} size="xl">
+  <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+  <ModalContent 
+    bg={modalBgColor}
+    borderRadius="xl"
+    boxShadow="xl"
+  >
+    <ModalHeader 
+      bg={modalHeaderBgColorEdit} 
+      color={modalHeaderTextColorEdit}
+      borderTopRadius="xl"
+      p={6}
+    >
+      <Flex align="center">
+        <Icon as={MdEdit} boxSize={6} mr={3} />
+        <Text fontSize="2xl" fontWeight="bold">Editar Registro</Text>
+      </Flex>
+    </ModalHeader>
+    <ModalCloseButton color={modalCloseButtonColor} />
+    <ModalBody p={6}>
+      {editData && (
+        <VStack spacing={6} align="stretch">
+          {Object.entries(editData).map(([key, value]) => (
+            <FormControl key={key}>
+              <FormLabel fontWeight="bold" color={modalBodyTextColor}>
+                {key}
+              </FormLabel>
+              <Input
+                value={value as string}
+                onChange={(e) =>
+                  setEditData({ ...editData, [key]: e.target.value })
+                }
+                bg={modalBodyBgColor}
+                borderColor={borderColor}
+                _hover={{ borderColor: hoverBgColor }}
+                _focus={{ borderColor: "green.400", boxShadow: "0 0 0 1px green.400" }}
+              />
+            </FormControl>
+          ))}
+        </VStack>
+      )}
+    </ModalBody>
+    <ModalFooter>
+      <HStack spacing={4}>
+        <Button colorScheme="green" onClick={() => handleSave(editData!)} size="lg" borderRadius="full">
+          Guardar
+        </Button>
+        <Button variant="outline" onClick={closeEditModal} size="lg" borderRadius="full">
+          Cancelar
+        </Button>
+      </HStack>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
 
-      {/* Confirm Delete Modal */}
-      <Modal isOpen={isConfirmModalOpen} onClose={closeConfirmModal}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Confirmar Eliminación</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            ¿Estás seguro de que deseas eliminar este registro?
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="red" mr={3} onClick={handleDelete}>
-              Eliminar
-            </Button>
-            <Button variant="ghost" onClick={closeConfirmModal}>
-              Cancelar
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+{/* Confirm Delete Modal */}
+<Modal isOpen={isConfirmModalOpen} onClose={closeConfirmModal} isCentered>
+  <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+  <ModalContent 
+    bg={modalBgColor}
+    borderRadius="xl"
+    boxShadow="xl"
+    maxW="400px"
+  >
+    <ModalHeader 
+      bg={modalHeaderBgColorDelete} 
+      color={modalHeaderTextColorDelete}
+      borderTopRadius="xl"
+      p={6}
+    >
+      <Flex align="center">
+        <Icon as={MdDelete} boxSize={6} mr={3} />
+        <Text fontSize="2xl" fontWeight="bold">Confirmar Eliminación</Text>
+      </Flex>
+    </ModalHeader>
+    <ModalCloseButton color={modalCloseButtonColor} />
+    <ModalBody p={6}>
+      <Text fontSize="lg" fontWeight="medium">
+        ¿Estás seguro de que deseas eliminar este registro?
+      </Text>
+      <Text fontSize="md" color={modalBodyTextColor} mt={2}>
+        Esta acción no se puede deshacer.
+      </Text>
+    </ModalBody>
+    <ModalFooter>
+      <HStack spacing={4}>
+        <Button colorScheme="red" onClick={handleDelete} size="lg" borderRadius="full">
+          Eliminar
+        </Button>
+        <Button variant="outline" onClick={closeConfirmModal} size="lg" borderRadius="full">
+          Cancelar
+        </Button>
+      </HStack>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
     </Box>
   );
 });
