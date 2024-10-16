@@ -55,6 +55,54 @@ interface ComplexTableProps {
   onMultipleSelect?: (selectedRows: RowObj[]) => void;
 }
 
+const MemoizedCheckbox = React.memo(Checkbox);
+
+const TableCell = React.memo(({ value }: { value: any }) => (
+  <Td
+    px={1}
+    py={2}
+    fontSize="xs"
+  >
+    {value}
+  </Td>
+));
+
+const ActionButtons = React.memo(({ row, openViewModal, openEditModal, openConfirmModal }: {
+  row: RowObj,
+  openViewModal: (data: RowObj) => void,
+  openEditModal: (data: RowObj) => void,
+  openConfirmModal: (id: string) => void
+}) => (
+  <Flex>
+    <IconButton
+      aria-label="Ver"
+      icon={<MdVisibility />}
+      onClick={() => openViewModal(row)}
+      size="sm"
+      colorScheme="blue"
+      variant="ghost"
+      mr={1}
+    />
+    <IconButton
+      aria-label="Editar"
+      icon={<MdEdit />}
+      onClick={() => openEditModal(row)}
+      size="sm"
+      colorScheme="green"
+      variant="ghost"
+      mr={1}
+    />
+    <IconButton
+      aria-label="Eliminar"
+      icon={<MdDelete />}
+      onClick={() => openConfirmModal(row["ID"])}
+      size="sm"
+      colorScheme="red"
+      variant="ghost"
+    />
+  </Flex>
+));
+
 const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
   tableData,
   onUpdate,
@@ -80,7 +128,6 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const hoverBgColor = useColorModeValue("gray.100", "gray.700");
 
-
   const modalBgColor = useColorModeValue("white", "gray.800");
   const modalHeaderBgColorView = useColorModeValue("blue.500", "blue.200");
   const modalHeaderTextColorView = useColorModeValue("white", "gray.800");
@@ -92,48 +139,47 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
   const modalBodyBgColor = useColorModeValue("gray.50", "gray.700");
   const modalBodyTextColor = useColorModeValue("gray.600", "gray.400");
 
-
-  const openViewModal = (data: RowObj) => {
+  const openViewModal = useCallback((data: RowObj) => {
     setModalData(data);
     setIsViewModalOpen(true);
-  };
+  }, []);
 
-  const closeViewModal = () => {
+  const closeViewModal = useCallback(() => {
     setIsViewModalOpen(false);
     setModalData(null);
-  };
+  }, []);
 
-  const openEditModal = (data: RowObj) => {
+  const openEditModal = useCallback((data: RowObj) => {
     setEditData(data);
     setIsEditModalOpen(true);
-  };
+  }, []);
 
-  const closeEditModal = () => {
+  const closeEditModal = useCallback(() => {
     setIsEditModalOpen(false);
     setEditData(null);
-  };
+  }, []);
 
-  const openConfirmModal = (id: string) => {
+  const openConfirmModal = useCallback((id: string) => {
     setDeleteId(id);
     setIsConfirmModalOpen(true);
-  };
+  }, []);
 
-  const closeConfirmModal = () => {
+  const closeConfirmModal = useCallback(() => {
     setIsConfirmModalOpen(false);
     setDeleteId(null);
-  };
+  }, []);
 
-  const handleSave = (updatedData: RowObj) => {
+  const handleSave = useCallback((updatedData: RowObj) => {
     onUpdate(updatedData);
     closeEditModal();
-  };
+  }, [onUpdate, closeEditModal]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (deleteId) {
       onDelete(deleteId);
       closeConfirmModal();
     }
-  };
+  }, [deleteId, onDelete, closeConfirmModal]);
 
   const handleMultipleSelect = useCallback(() => {
     const selectedRows = Object.keys(selectedRowIds).map(id => 
@@ -147,7 +193,7 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
       id: "select",
       header: ({ table }) => (
         <Box width="20px">
-          <Checkbox
+          <MemoizedCheckbox
             isChecked={table.getIsAllRowsSelected()}
             isIndeterminate={table.getIsSomeRowsSelected()}
             onChange={table.getToggleAllRowsSelectedHandler()}
@@ -157,7 +203,7 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
       ),
       cell: ({ row }) => (
         <Box width="20px">
-          <Checkbox
+          <MemoizedCheckbox
             isChecked={row.getIsSelected()}
             onChange={row.getToggleSelectedHandler()}
             size="sm"
@@ -171,44 +217,22 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
       .map((key) =>
         columnHelper.accessor(key, {
           header: () => <Text fontWeight="bold">{key}</Text>,
-          cell: (info) => info.getValue(),
+          cell: (info) => <TableCell value={info.getValue()} />,
         })
       ),
     columnHelper.display({
       id: "actions",
       header: () => <Text fontWeight="bold">Acciones</Text>,
       cell: ({ row }) => (
-        <Flex>
-          <IconButton
-            aria-label="Ver"
-            icon={<MdVisibility />}
-            onClick={() => openViewModal(row.original)}
-            size="sm"
-            colorScheme="blue"
-            variant="ghost"
-            mr={1}
-          />
-          <IconButton
-            aria-label="Editar"
-            icon={<MdEdit />}
-            onClick={() => openEditModal(row.original)}
-            size="sm"
-            colorScheme="green"
-            variant="ghost"
-            mr={1}
-          />
-          <IconButton
-            aria-label="Eliminar"
-            icon={<MdDelete />}
-            onClick={() => openConfirmModal(row.original["ID"])}
-            size="sm"
-            colorScheme="red"
-            variant="ghost"
-          />
-        </Flex>
+        <ActionButtons
+          row={row.original}
+          openViewModal={openViewModal}
+          openEditModal={openEditModal}
+          openConfirmModal={openConfirmModal}
+        />
       ),
     }),
-  ], [tableData, hiddenColumns]);
+  ], [tableData, hiddenColumns, openViewModal, openEditModal, openConfirmModal]);
 
   const table = useReactTable({
     data: tableData,
@@ -234,8 +258,8 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
       if (tableContainerRef.current) {
         const windowHeight = window.innerHeight;
         const tableTop = tableContainerRef.current.getBoundingClientRect().top;
-        const newHeight = windowHeight - tableTop - 20; // 20px for some bottom margin
-        setTableHeight(Math.max(newHeight, 400)); // Ensure a minimum height of 400px
+        const newHeight = windowHeight - tableTop - 20;
+        setTableHeight(Math.max(newHeight, 400));
       }
     };
 
@@ -326,20 +350,12 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
             {rows.map((row) => (
               <Tr key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <Td
-                    key={cell.id}
-                    px={1}
-                    py={2}
-                    borderColor={borderColor}
-                    color={textColor}
-                    fontSize="xs"
-                    width={cell.column.id === 'select' ? "20px" : "auto"}
-                  >
+                  <React.Fragment key={cell.id}>
                     {flexRender(
                       cell.column.columnDef.cell,
                       cell.getContext()
                     )}
-                  </Td>
+                  </React.Fragment>
                 ))}
               </Tr>
             ))}
@@ -347,145 +363,145 @@ const ComplexTable: React.FC<ComplexTableProps> = React.memo(({
         </Table>
       </Box>
 
-   {/* View Modal */}
-<Modal isOpen={isViewModalOpen} onClose={closeViewModal} size="xl">
-  <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-  <ModalContent 
-    bg={modalBgColor}
-    borderRadius="xl"
-    boxShadow="xl"
-  >
-    <ModalHeader 
-      bg={modalHeaderBgColorView} 
-      color={modalHeaderTextColorView}
-      borderTopRadius="xl"
-      p={6}
-    >
-      <Flex align="center">
-        <Icon as={MdInfo} boxSize={6} mr={3} />
-        <Text fontSize="2xl" fontWeight="bold">Detalle del Registro</Text>
-      </Flex>
-    </ModalHeader>
-    <ModalCloseButton color={modalCloseButtonColor} />
-    <ModalBody p={6}>
-      {modalData && (
-        <VStack spacing={6} align="stretch">
-          {Object.entries(modalData).map(([key, value]) => (
-            <Box key={key} bg={modalBodyBgColor} p={4} borderRadius="md">
-              <Text fontWeight="bold" fontSize="sm" color={modalBodyTextColor} mb={1}>
-                {key}:
-              </Text>
-              <Text fontSize="lg">{value as string}</Text>
-            </Box>
-          ))}
-        </VStack>
-      )}
-    </ModalBody>
-    <ModalFooter>
-      <Button colorScheme="blue" onClick={closeViewModal} size="lg" borderRadius="full">
-        Cerrar
-      </Button>
-    </ModalFooter>
-  </ModalContent>
-</Modal>
+      {/* View Modal */}
+      <Modal isOpen={isViewModalOpen} onClose={closeViewModal} size="xl">
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <ModalContent 
+          bg={modalBgColor}
+          borderRadius="xl"
+          boxShadow="xl"
+        >
+          <ModalHeader 
+            bg={modalHeaderBgColorView} 
+            color={modalHeaderTextColorView}
+            borderTopRadius="xl"
+            p={6}
+          >
+            <Flex align="center">
+              <Icon as={MdInfo} boxSize={6} mr={3} />
+              <Text fontSize="2xl" fontWeight="bold">Detalle del Registro</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton color={modalCloseButtonColor} />
+          <ModalBody p={6}>
+            {modalData && (
+              <VStack spacing={6} align="stretch">
+                {Object.entries(modalData).map(([key, value]) => (
+                  <Box key={key} bg={modalBodyBgColor} p={4} borderRadius="md">
+                    <Text fontWeight="bold" fontSize="sm" color={modalBodyTextColor} mb={1}>
+                      {key}:
+                    </Text>
+                    <Text fontSize="lg">{value as string}</Text>
+                  </Box>
+                ))}
+              </VStack>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={closeViewModal} size="lg" borderRadius="full">
+              Cerrar
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
-{/* Edit Modal */}
-<Modal isOpen={isEditModalOpen} onClose={closeEditModal} size="xl">
-  <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-  <ModalContent 
-    bg={modalBgColor}
-    borderRadius="xl"
-    boxShadow="xl"
-  >
-    <ModalHeader 
-      bg={modalHeaderBgColorEdit} 
-      color={modalHeaderTextColorEdit}
-      borderTopRadius="xl"
-      p={6}
-    >
-      <Flex align="center">
-        <Icon as={MdEdit} boxSize={6} mr={3} />
-        <Text fontSize="2xl" fontWeight="bold">Editar Registro</Text>
-      </Flex>
-    </ModalHeader>
-    <ModalCloseButton color={modalCloseButtonColor} />
-    <ModalBody p={6}>
-      {editData && (
-        <VStack spacing={6} align="stretch">
-          {Object.entries(editData).map(([key, value]) => (
-            <FormControl key={key}>
-              <FormLabel fontWeight="bold" color={modalBodyTextColor}>
-                {key}
-              </FormLabel>
-              <Input
-                value={value as string}
-                onChange={(e) =>
-                  setEditData({ ...editData, [key]: e.target.value })
-                }
-                bg={modalBodyBgColor}
-                borderColor={borderColor}
-                _hover={{ borderColor: hoverBgColor }}
-                _focus={{ borderColor: "green.400", boxShadow: "0 0 0 1px green.400" }}
-              />
-            </FormControl>
-          ))}
-        </VStack>
-      )}
-    </ModalBody>
-    <ModalFooter>
-      <HStack spacing={4}>
-        <Button colorScheme="green" onClick={() => handleSave(editData!)} size="lg" borderRadius="full">
-          Guardar
-        </Button>
-        <Button variant="outline" onClick={closeEditModal} size="lg" borderRadius="full">
-          Cancelar
-        </Button>
-      </HStack>
-    </ModalFooter>
-  </ModalContent>
-</Modal>
+      {/* Edit Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={closeEditModal} size="xl">
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <ModalContent 
+          bg={modalBgColor}
+          borderRadius="xl"
+          boxShadow="xl"
+        >
+          <ModalHeader 
+            bg={modalHeaderBgColorEdit} 
+            color={modalHeaderTextColorEdit}
+            borderTopRadius="xl"
+            p={6}
+          >
+            <Flex align="center">
+              <Icon as={MdEdit} boxSize={6} mr={3} />
+              <Text fontSize="2xl" fontWeight="bold">Editar Registro</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton color={modalCloseButtonColor} />
+          <ModalBody p={6}>
+            {editData && (
+              <VStack spacing={6} align="stretch">
+                {Object.entries(editData).map(([key, value]) => (
+                  <FormControl key={key}>
+                    <FormLabel fontWeight="bold" color={modalBodyTextColor}>
+                      {key}
+                    </FormLabel>
+                    <Input
+                      value={value as string}
+                      onChange={(e) =>
+                        setEditData({ ...editData, [key]: e.target.value })
+                      }
+                      bg={modalBodyBgColor}
+                      borderColor={borderColor}
+                      _hover={{ borderColor: hoverBgColor }}
+                      _focus={{ borderColor: "green.400", boxShadow: "0 0 0 1px green.400" }}
+                    />
+                  </FormControl>
+                ))}
+              </VStack>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <HStack spacing={4}>
+              <Button colorScheme="green" onClick={() => handleSave(editData!)} size="lg" borderRadius="full">
+                Guardar
+              </Button>
+              <Button variant="outline" onClick={closeEditModal} size="lg" borderRadius="full">
+                Cancelar
+              </Button>
+            </HStack>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
-{/* Confirm Delete Modal */}
-<Modal isOpen={isConfirmModalOpen} onClose={closeConfirmModal} isCentered>
-  <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-  <ModalContent 
-    bg={modalBgColor}
-    borderRadius="xl"
-    boxShadow="xl"
-    maxW="400px"
-  >
-    <ModalHeader 
-      bg={modalHeaderBgColorDelete} 
-      color={modalHeaderTextColorDelete}
-      borderTopRadius="xl"
-      p={6}
-    >
-      <Flex align="center">
-        <Icon as={MdDelete} boxSize={6} mr={3} />
-        <Text fontSize="2xl" fontWeight="bold">Confirmar Eliminación</Text>
-      </Flex>
-    </ModalHeader>
-    <ModalCloseButton color={modalCloseButtonColor} />
-    <ModalBody p={6}>
-      <Text fontSize="lg" fontWeight="medium">
-        ¿Estás seguro de que deseas eliminar este registro?
-      </Text>
-      <Text fontSize="md" color={modalBodyTextColor} mt={2}>
-        Esta acción no se puede deshacer.
-      </Text>
-    </ModalBody>
-    <ModalFooter>
-      <HStack spacing={4}>
-        <Button colorScheme="red" onClick={handleDelete} size="lg" borderRadius="full">
-          Eliminar
-        </Button>
-        <Button variant="outline" onClick={closeConfirmModal} size="lg" borderRadius="full">
-          Cancelar
-        </Button>
-      </HStack>
-    </ModalFooter>
-  </ModalContent>
-</Modal>
+      {/* Confirm Delete Modal */}
+      <Modal isOpen={isConfirmModalOpen} onClose={closeConfirmModal} isCentered>
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <ModalContent 
+          bg={modalBgColor}
+          borderRadius="xl"
+          boxShadow="xl"
+          maxW="400px"
+        >
+          <ModalHeader 
+            bg={modalHeaderBgColorDelete} 
+            color={modalHeaderTextColorDelete}
+            borderTopRadius="xl"
+            p={6}
+          >
+            <Flex align="center">
+              <Icon as={MdDelete} boxSize={6} mr={3} />
+              <Text fontSize="2xl" fontWeight="bold">Confirmar Eliminación</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton color={modalCloseButtonColor} />
+          <ModalBody p={6}>
+            <Text fontSize="lg" fontWeight="medium">
+              ¿Estás seguro de que deseas eliminar este registro?
+            </Text>
+            <Text fontSize="md" color={modalBodyTextColor} mt={2}>
+              Esta acción no se puede deshacer.
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <HStack spacing={4}>
+              <Button colorScheme="red" onClick={handleDelete} size="lg" borderRadius="full">
+                Eliminar
+              </Button>
+              <Button variant="outline" onClick={closeConfirmModal} size="lg" borderRadius="full">
+                Cancelar
+              </Button>
+            </HStack>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 });

@@ -74,8 +74,8 @@ const Dashboard: React.FC = () => {
       const dataMapped = data.data.results.map((item: any) => (
         {
           "ID": item.id,
-          "ID Lote": item.lote,
-          "ID Propietario": item.propietario,
+          "Unidad": item.unidad,
+          "Propietario": item.nombre_propietario + " " + item.apellido_propietario,
           "Saldo a pagar": item.saldo_total_a_pagar,
           "Saldo pagado": item.saldo_pagado,
 

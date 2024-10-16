@@ -44,6 +44,7 @@ import { FaDollarSign, FaUsers, FaCalendar, FaChartBar, FaFileAlt } from 'react-
 import { API_ADDRESS } from "../../../variables/apiSettings"
 import { useSelector } from "react-redux"
 import { useNavigate } from 'react-router-dom'
+import PaymentNoticePreview from './pdf'
 
 ChartJS.register(
   CategoryScale,
@@ -65,53 +66,13 @@ interface PeriodoCierre{
 }
 
 
-// Simulación de llamadas a API (sin cambios)
-const fetchResumen = async () => {
-  // Simula una llamada a API
-  await new Promise(resolve => setTimeout(resolve, 500))
-  return {
-    gastosTotales: 45678.90,
-    saldosPropietarios: 123456.78,
-    periodoCierre: new Date()
-  }
-}
-
-const fetchGastos = async () => {
-  await new Promise(resolve => setTimeout(resolve, 500))
-  return [
-    { concepto: 'Mantenimiento', monto: 12345.67 },
-    { concepto: 'Servicios', monto: 5678.90 },
-    { concepto: 'Honorarios de Gestión', monto: 3456.78 },
-    { concepto: 'Seguros', monto: 2345.67 },
-    { concepto: 'Impuestos', monto: 21851.88 }
-  ]
-}
-
-const fetchSaldos = async () => {
-  await new Promise(resolve => setTimeout(resolve, 500))
-  return [
-    { propietario: 'Propietario A', saldo: 45678.90 },
-    { propietario: 'Propietario B', saldo: 34567.89 },
-    { propietario: 'Propietario C', saldo: 23456.78 },
-    { propietario: 'Propietario D', saldo: 19753.21 }
-  ]
-}
-
-const fetchProyecciones = async () => {
-  await new Promise(resolve => setTimeout(resolve, 500))
-  return {
-    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-    proyectado: [12000, 19000, 15000, 17000, 22000, 24000],
-    real: [11000, 18500, 14800, 16900, 21500, 23800]
-  }
-}
-
 export default function VistaPreviaCierrePeriodo() {
 
   const [fecha, setFecha] = useState<Date | undefined>(new Date())
   const [resumen, setResumen] = useState<any>(null)
   const [gastos, setGastos] = useState<any[]>([])
   const [saldos, setSaldos] = useState<any[]>([])
+  const [propietarios, setPropietarios] = useState<any[]>([])
   const [saldosApi, setSaldosApi] = useState<SaldosApi>({
     suma_pendiente: 0,
     suma_a_favor: 0,
@@ -129,10 +90,7 @@ export default function VistaPreviaCierrePeriodo() {
   
   useEffect(() => {
     getSaldosData();
-    fetchResumen().then(setResumen)
-    fetchGastos().then(setGastos)
-    fetchSaldos().then(setSaldos)
-    fetchProyecciones().then(setProyecciones)
+
     
   }, [])
   
@@ -196,6 +154,23 @@ export default function VistaPreviaCierrePeriodo() {
       })
     }
   };
+  const propietariosInfo = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_ADDRESS}todos-los-propietarios/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+      });
+
+      const data = await response.json();
+      console.log(data)
+
+    } catch (error) {
+
+    }}
   
   const handleCierre = () => {
     setIsAlertOpen(true)
@@ -226,42 +201,11 @@ export default function VistaPreviaCierrePeriodo() {
     ],
   } : null
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Proyecciones de Pagos vs Reales',
-        font: {
-          size: 16,
-          weight: 'bold',
-        },
-      },
-      tooltip: {
-        mode: 'index' as const,
-        intersect: false,
-      },
-    },
-    scales: {
-      x: {
-        type: 'category' as const,
-        grid: {
-          display: false,
-        },
-      },
-      y: {
-        type: 'linear' as const,
-        beginAtZero: true,
-        ticks: {
-          callback: (value: number) => `$${value / 1000}k`,
-        },
-      },
-    },
-  }
+  useEffect(() => {
+    propietariosInfo();
+
+  });
+
 
   const pieData = {
     labels: gastosPorCategoria.map(gasto => gasto.categoria),
@@ -353,14 +297,14 @@ export default function VistaPreviaCierrePeriodo() {
                 </CardHeader>
                 <CardBody>
                   <Box
-                    as="iframe"
-                    src="/placeholder.svg?text=Vista+Previa+PDF"
+                    
                     width="100%"
-                    height="500px"
+                    height="100%"
                     borderRadius="md"
                     mb={4}
-                  />
-                  <Button leftIcon={<Icon as={FaFileAlt} />} colorScheme="blue">
+                  >
+                    <PaymentNoticePreview />
+</Box>                  <Button leftIcon={<Icon as={FaFileAlt} />} colorScheme="blue">
                     Descargar Informe Completo
                   </Button>
                 </CardBody>
