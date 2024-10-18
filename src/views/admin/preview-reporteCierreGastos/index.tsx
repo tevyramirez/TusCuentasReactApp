@@ -25,6 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  Select,
+  Input,
 } from '@chakra-ui/react'
 import { DayPicker } from 'react-day-picker'
 import { Bar, Pie } from 'react-chartjs-2'
@@ -60,27 +62,102 @@ interface SaldosApi {
   suma_pendiente: number,
   suma_a_favor: number,
 }
-interface PeriodoCierre{
+
+interface PeriodoCierre {
   id: number,
   mesInicio: string,
 }
 
+interface Owner {
+  id: number;
+  nombre: string;
+  apellido: string;
+  rut: string;
+  razon_social: string;
+  email: string;
+  numero_telefono: string;
+  estado: number;
+}
+
+function OwnerSelector({ onOwnerSelect }: { onOwnerSelect: (owner: Owner) => void }) {
+  const [owners, setOwners] = useState<Owner[]>([]);
+  const [filteredOwners, setFilteredOwners] = useState<Owner[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchOwners = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const response = await fetch(`${API_ADDRESS}todos-los-propietarios/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        });
+        const data = await response.json();
+        setOwners(data);
+        setFilteredOwners(data);
+      } catch (error) {
+        console.error("Error fetching owners:", error);
+      }
+    };
+
+    fetchOwners();
+  }, []);
+
+  useEffect(() => {
+    const filtered = owners.filter(owner => 
+      owner.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      owner.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      owner.rut.includes(searchTerm)
+    );
+    setFilteredOwners(filtered);
+  }, [searchTerm, owners]);
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOwner = owners.find(owner => owner.id === parseInt(event.target.value));
+    if (selectedOwner) {
+      onOwnerSelect(selectedOwner);
+    }
+  };
+
+  return (
+    <VStack spacing={4} align="stretch">
+      <Input
+        placeholder="Buscar por nombre o RUT"
+        value={searchTerm}
+        onChange={handleSearch}
+      />
+      <Select placeholder="Seleccionar propietario" onChange={handleSelect}>
+        {filteredOwners.map(owner => (
+          <option key={owner.id} value={owner.id}>
+            {`${owner.nombre} ${owner.apellido} - ${owner.rut}`}
+          </option>
+        ))}
+      </Select>
+    </VStack>
+  );
+}
 
 export default function VistaPreviaCierrePeriodo() {
-
   const [fecha, setFecha] = useState<Date | undefined>(new Date())
   const [resumen, setResumen] = useState<any>(null)
   const [gastos, setGastos] = useState<any[]>([])
   const [saldos, setSaldos] = useState<any[]>([])
-  const [propietarios, setPropietarios] = useState<any[]>([])
   const [saldosApi, setSaldosApi] = useState<SaldosApi>({
     suma_pendiente: 0,
     suma_a_favor: 0,
-})
+  })
   const [periodoCierre, setPeriodoCierre] = useState<PeriodoCierre | null>(null)
   const [proyecciones, setProyecciones] = useState<any>(null)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
   const [gastosPorCategoria, setGastosPorCategoria] = useState<any[]>([])
+  const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null)
   const cancelRef = React.useRef()
   const periodo = useSelector((state: any) => state.periodo.periodoActual)
   const toast = useToast()
@@ -90,8 +167,6 @@ export default function VistaPreviaCierrePeriodo() {
   
   useEffect(() => {
     getSaldosData();
-
-    
   }, [])
   
   const getSaldosData = async () => {
@@ -104,16 +179,11 @@ export default function VistaPreviaCierrePeriodo() {
           "Authorization": `Bearer ${token}`
         },
       });
-      // Almacenar la respuesta en una variable
       const data = await response.json();
-      console.log(data)
       setSaldosApi(data.saldos)
       setPeriodoCierre(data)
       setGastosPorCategoria(data.gastos_por_categoria.gastos_por_categoria)
-      console.log(data.gastos_por_categoria.gastos_por_categoria)
-      console.log(gastosPorCategoria)
-
-  } catch (error) {
+    } catch (error) {
       console.error("Error al sumar saldos:", error);
       toast({
         title: "Error",
@@ -122,7 +192,8 @@ export default function VistaPreviaCierrePeriodo() {
         duration: 5000,
         isClosable: true,
       })
-    }};
+    }
+  };
 
   const cerrarPeriodo = async (periodoId: number) => {
     try {
@@ -142,7 +213,7 @@ export default function VistaPreviaCierrePeriodo() {
         duration: 5000,
         isClosable: true,
       })
-      navigate('/admin')  // Redirige a la página de administración después de cerrar el período
+      navigate('/admin')
     } catch (error) {
       console.error("Error al cerrar periodo:", error);
       toast({
@@ -154,23 +225,6 @@ export default function VistaPreviaCierrePeriodo() {
       })
     }
   };
-  const propietariosInfo = async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_ADDRESS}todos-los-propietarios/`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-      });
-
-      const data = await response.json();
-      console.log(data)
-
-    } catch (error) {
-
-    }}
   
   const handleCierre = () => {
     setIsAlertOpen(true)
@@ -181,31 +235,11 @@ export default function VistaPreviaCierrePeriodo() {
     cerrarPeriodo(periodo)
   }
 
-  const chartData = proyecciones ? {
-    labels: proyecciones.labels,
-    datasets: [
-      {
-        label: 'Pagos Proyectados',
-        data: proyecciones.proyectado,
-        backgroundColor: 'rgba(0, 51, 102, 0.6)',
-        borderColor: 'rgba(0, 51, 102, 1)',
-        borderWidth: 1,
-      },
-      {
-        label: 'Pagos Reales',
-        data: proyecciones.real,
-        backgroundColor: 'rgba(0, 102, 204, 0.6)',
-        borderColor: 'rgba(0, 102, 204, 1)',
-        borderWidth: 1,
-      },
-    ],
-  } : null
-
-  useEffect(() => {
-    propietariosInfo();
-
-  });
-
+  const handleOwnerSelect = (owner: Owner) => {
+    setSelectedOwner(owner);
+    // Here you would typically fetch the payment notice data for the selected owner
+    // and update the PaymentNoticePreview component
+  };
 
   const pieData = {
     labels: gastosPorCategoria.map(gasto => gasto.categoria),
@@ -235,18 +269,19 @@ export default function VistaPreviaCierrePeriodo() {
     responsive: true,
     plugins: {
       legend: {
-        position: 'right' as const,
+        position: "right",
       },
       title: {
         display: true,
-        text: 'Distribución de Gastos',
+        text: "Resumen de Gastos",
         font: {
-          size: 16,
-          weight: 'bold',
+          size: 20,
+         // Ajuste aquí
         },
       },
     },
-  }
+  };
+  
 
   return (
     <Box minH="100vh" bg={bgColor} p={4}>
@@ -254,7 +289,6 @@ export default function VistaPreviaCierrePeriodo() {
         <Tabs isFitted variant="enclosed">
           <TabList mb="1em">
             <Tab><Icon as={FaDollarSign} mr={2} /> Resumen</Tab>
-
             <Tab><Icon as={FaFileAlt} mr={2} /> Informe</Tab>
           </TabList>
           <TabPanels>
@@ -285,7 +319,7 @@ export default function VistaPreviaCierrePeriodo() {
                 </CardHeader>
                 <CardBody>
                   <Box h="400px">
-                    <Pie data={pieData} />
+                    <Pie data={pieData}  />
                   </Box>
                 </CardBody>
               </Card>
@@ -296,47 +330,24 @@ export default function VistaPreviaCierrePeriodo() {
                   <Heading size="md">Informe de Cierre de Período</Heading>
                 </CardHeader>
                 <CardBody>
-                  <Box
-                    
-                    width="100%"
-                    height="100%"
-                    borderRadius="md"
-                    mb={4}
-                  >
+                  <OwnerSelector onOwnerSelect={handleOwnerSelect} />
+                  {selectedOwner && (
+                    <Flex direction="column" mt={4} p={4} bg="gray.100" borderRadius="md">
+                      <Text><strong>Nombre:</strong> {selectedOwner.nombre} {selectedOwner.apellido}</Text>
+                      <Text><strong>RUT:</strong> {selectedOwner.rut}</Text>
+                      <Text><strong>Email:</strong> {selectedOwner.email}</Text>
+                      <Text><strong>Teléfono:</strong> {selectedOwner.numero_telefono}</Text>
+                    </Flex>
+                  )}
+                  <Box mt={6}>
                     <PaymentNoticePreview />
-</Box>                  <Button leftIcon={<Icon as={FaFileAlt} />} colorScheme="blue">
+                  </Box>
+                  <Button leftIcon={<Icon as={FaFileAlt} />} colorScheme="blue" mt={4}>
                     Descargar Informe Completo
                   </Button>
                 </CardBody>
               </Card>
             </TabPanel>
-            <TabPanel>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Saldos de Propietarios</Heading>
-                </CardHeader>
-                <CardBody>
-                  <VStack align="start" spacing={2}>
-                    {saldos.map((saldo, index) => (
-                      <Text key={index}>{saldo.propietario}: ${saldo.saldo.toFixed(2)}</Text>
-                    ))}
-                  </VStack>
-                </CardBody>
-              </Card>
-            </TabPanel>
-            <TabPanel>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Proyecciones de Pagos</Heading>
-                </CardHeader>
-                <CardBody>
-                  <Box h="400px">
-                    {chartData && <Bar data={chartData} />}
-                  </Box>
-                </CardBody>
-              </Card>
-            </TabPanel>
-            
           </TabPanels>
         </Tabs>
         <Flex justify="flex-end" mt={8} gap={4}>
