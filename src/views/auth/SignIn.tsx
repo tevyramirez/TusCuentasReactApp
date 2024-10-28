@@ -2,6 +2,7 @@ import React, { useState, FormEvent } from 'react';
 import { Input, Button, FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/react';
 import { useAuth } from './AuthContext';
 import { Link } from 'react-router-dom';
+import { API_ADDRESS } from 'variables/apiSettings';
 
 const SignIn: React.FC = () => {
   const [username, setUsername] = useState<string>('');
@@ -15,7 +16,7 @@ const SignIn: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/login/', {
+      const response = await fetch(API_ADDRESS+'login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
