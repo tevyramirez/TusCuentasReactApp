@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { Input, Button, FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/react';
 import { useAuth } from './AuthContext';
 import { Link } from 'react-router-dom';
@@ -10,51 +10,79 @@ const SignIn: React.FC = () => {
   const [error, setError] = useState<string>('');
   const { login } = useAuth();
 
+  // Function to get CSRF token
+  const getCSRFToken = () => {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  };
+
+  // Get CSRF token when component mounts
+  useEffect(() => {
+    const fetchCSRFToken = async () => {
+      try {
+        const response = await fetch(`${API_ADDRESS}csrf/`, {
+          credentials: 'include'
+        });
+        if (!response.ok) {
+          console.error('Failed to fetch CSRF token');
+        }
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
+
+    fetchCSRFToken();
+  }, []);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
-      // Log the request details
-      console.log('Making request to:', `${API_ADDRESS}login/`);
-      console.log('Request payload:', { username, password });
-
+      const csrfToken = getCSRFToken();
+      
       const response = await fetch(`${API_ADDRESS}login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'X-CSRFToken': csrfToken || '',
         },
         body: JSON.stringify({ username, password }),
-        credentials: 'include', // Include credentials if needed
+        credentials: 'include',
       });
 
-      // Log the response details
+      // Log the response details (you can remove these in production)
       console.log('Response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
-      // Get the raw text first
       const textResponse = await response.text();
-      console.log('Raw response:', textResponse);
-
       let data;
+      
       try {
-        // Try to parse the response as JSON
         data = JSON.parse(textResponse);
       } catch (parseError) {
         console.error('JSON Parse Error:', parseError);
-        setError('Received invalid response from server');
+        setError('Error en la respuesta del servidor');
         return;
       }
 
-      if (response.ok) {
-        if (data.access) {
-          localStorage.setItem('access_token', data.access);
-          login(data.access);
-          window.location.href = '/admin';
-        } else {
-          setError('Token no recibido del servidor');
-        }
+      if (response.ok && data.access) {
+        localStorage.setItem('access_token', data.access);
+        login(data.access);
+        // Use navigate from react-router instead of window.location
+        window.location.href = '/admin';
       } else {
         setError(data.detail || data.error || 'Error de autenticación');
       }
