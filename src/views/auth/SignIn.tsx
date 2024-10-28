@@ -16,30 +16,29 @@ const SignIn: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(API_ADDRESS+'login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+        const response = await fetch(`${API_ADDRESS}login/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
 
-      if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('access_token', data.access);  // Guardar el token
-        login(data.access);
-        console.log("Login successful");
-        console.log(data.access);
-        
-        window.location.href = '/admin'; // Redirigir al dashboard
-      } else {
-        const data = await response.json();
-        setError(data.detail || 'Ocurrió un error, intenta nuevamente');
-      }
+
+        if (response.ok) {
+            localStorage.setItem('access_token', data.access);
+            login(data.access);
+            window.location.href = '/admin';
+        } else {
+            setError(data.detail || 'Error de autenticación. Por favor, verifica tus credenciales.');
+        }
     } catch (error) {
-      setError('Ocurrió un error, intenta nuevamente');
+        console.error('Error during login:', error);
+        setError('Error de conexión. Por favor, intenta nuevamente.');
     }
-  };
+};
 
   return (
     <div className="mt-16 mb-16 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
