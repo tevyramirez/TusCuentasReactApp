@@ -10,35 +10,59 @@ const SignIn: React.FC = () => {
   const [error, setError] = useState<string>('');
   const { login } = useAuth();
 
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
-        const response = await fetch(`${API_ADDRESS}login/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-        });
+      // Log the request details
+      console.log('Making request to:', `${API_ADDRESS}login/`);
+      console.log('Request payload:', { username, password });
 
-        const data = await response.json();
+      const response = await fetch(`${API_ADDRESS}login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include', // Include credentials if needed
+      });
 
-        if (response.ok) {
-            localStorage.setItem('access_token', data.access);
-            login(data.access);
-            window.location.href = '/admin';
+      // Log the response details
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Get the raw text first
+      const textResponse = await response.text();
+      console.log('Raw response:', textResponse);
+
+      let data;
+      try {
+        // Try to parse the response as JSON
+        data = JSON.parse(textResponse);
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        setError('Received invalid response from server');
+        return;
+      }
+
+      if (response.ok) {
+        if (data.access) {
+          localStorage.setItem('access_token', data.access);
+          login(data.access);
+          window.location.href = '/admin';
         } else {
-            setError(data.detail || 'Error de autenticación. Por favor, verifica tus credenciales.');
+          setError('Token no recibido del servidor');
         }
+      } else {
+        setError(data.detail || data.error || 'Error de autenticación');
+      }
     } catch (error) {
-        console.error('Error during login:', error);
-        setError('Error de conexión. Por favor, intenta nuevamente.');
+      console.error('Network Error:', error);
+      setError('Error de conexión al servidor');
     }
-};
+  };
 
   return (
     <div className="mt-16 mb-16 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
@@ -51,21 +75,17 @@ const SignIn: React.FC = () => {
         </p>
       
         <form onSubmit={handleSubmit} className="w-full">
-          {/* Email */}
           <FormControl className="mb-3">
-            <FormLabel >Email*</FormLabel>
+            <FormLabel>Usuario*</FormLabel>
             <Input
-              id="email"
-          
+              id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="mail@simple.com"
+              placeholder="nombre de usuario"
               required
             />
-            <FormErrorMessage>{error}</FormErrorMessage>
           </FormControl>
 
-          {/* Password */}
           <FormControl isInvalid={!!error} className="mb-3">
             <FormLabel htmlFor="password">Contraseña*</FormLabel>
             <Input
@@ -76,48 +96,16 @@ const SignIn: React.FC = () => {
               placeholder="Min. 8 caracteres"
               required
             />
-            <FormErrorMessage>{error}</FormErrorMessage>
+            {error && <FormErrorMessage>{error}</FormErrorMessage>}
           </FormControl>
 
-          {/* Remember me checkbox and forgot password link NO ACTIVOS PORQUE NO ESTAN FUNCIONALES
-          AGREGAR FUTURAMENTE */}
-
-
- {/*          <div className="mb-4 flex items-center justify-between px-2">
-            <div className="flex items-center">
-              <input type="checkbox" className="form-checkbox h-4 w-4 text-brand-500 dark:text-white" />
-              <p className="ml-2 text-sm font-medium text-navy-700 dark:text-white">
-                Recuérdame
-              </p>
-            </div>
-            <Link to="/forgot-password" className="text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white">
-              ¿Olvidaste la Contraseña?
-            </Link>
-          </div> */}
-
-          {/* Sign in button */}
-          <Button type="submit" className="w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200">
-            Ingresa
+          <Button 
+            type="submit" 
+            className="w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+          >
+            Ingresar
           </Button>
         </form>
-
-        {/* Separator line and "or" text */}
-{/*         <div className="mb-6 mt-6 flex items-center gap-3">
-          <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
-          <p className="text-base text-gray-600 dark:text-white"> o </p>
-          <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
-        </div> */}
-
-        {/* Link to registration */}
-        {/* <span className="text-sm font-medium text-navy-700 dark:text-gray-600">
-          Not registered yet?
-        </span>
-        <Link
-          to="/register"
-          className="ml-1 text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white"
-        >
-          Create an account
-        </Link> */}
       </div>
     </div>
   );
