@@ -49,7 +49,8 @@ const SignIn: React.FC = () => {
     };
 
     fetchCSRFToken();
-    Cookies.get('csrftoken');
+    const lacuki = Cookies.get('csrftoken');
+    console.log(lacuki);
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
