@@ -8,17 +8,18 @@ const SignIn: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [csrfToken, setCsrfToken] = useState<string | null>(null); // Estado para almacenar el CSRF token
   const { login } = useAuth();
 
-  // Function to get CSRF token
-  const getCSRFToken = () => {
+  // Función para obtener el token CSRF desde las cookies
+  const getCSRFTokenFromCookie = () => {
     const name = 'csrftoken';
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
       const cookies = document.cookie.split(';');
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        if (cookie.startsWith(`${name}=`)) {
           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
           break;
         }
@@ -27,14 +28,16 @@ const SignIn: React.FC = () => {
     return cookieValue;
   };
 
-  // Get CSRF token when component mounts
+  // Obtener el token CSRF cuando el componente se monta
   useEffect(() => {
     const fetchCSRFToken = async () => {
       try {
         const response = await fetch(`${API_ADDRESS}csrf/`, {
-          credentials: 'include'
+          credentials: 'include',
         });
-        if (!response.ok) {
+        if (response.ok) {
+          setCsrfToken(getCSRFTokenFromCookie()); // Almacena el token en el estado
+        } else {
           console.error('Failed to fetch CSRF token');
         }
       } catch (error) {
@@ -50,22 +53,17 @@ const SignIn: React.FC = () => {
     setError('');
 
     try {
-      const csrfToken = getCSRFToken();
       console.log("Hola este es el token", csrfToken);
       const response = await fetch(`${API_ADDRESS}login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-CSRFToken': csrfToken || '',
+          'X-CSRFToken': csrfToken || '', // Usa el token CSRF almacenado en el estado
         },
         body: JSON.stringify({ username, password }),
         credentials: 'include',
       });
-
-      // Log the response details (you can remove these in production)
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
       const textResponse = await response.text();
       let data;
@@ -81,7 +79,6 @@ const SignIn: React.FC = () => {
       if (response.ok && data.access) {
         localStorage.setItem('access_token', data.access);
         login(data.access);
-        // Use navigate from react-router instead of window.location
         window.location.href = '/admin';
       } else {
         setError(data.detail || data.error || 'Error de autenticación');
