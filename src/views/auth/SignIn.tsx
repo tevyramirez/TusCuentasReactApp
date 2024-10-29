@@ -37,11 +37,9 @@ const SignIn: React.FC = () => {
           credentials: 'include',
         });
         if (response.ok) {
-          const allCookies = document.cookie;
-        console.log(allCookies);
-          setCsrfToken(getCSRFTokenFromCookie());
-          console.log(response.headers.get('Set-Cookie'));
-          console.log(csrfToken) // Almacena el token en el estado
+          const cookies = document.cookie.split(';');
+          const csrfToken = cookies.find((cookie) => cookie.trim().startsWith('csrftoken='))?.split('=')[1];
+          setCsrfToken(csrfToken);
         } else {
           console.error('Failed to fetch CSRF token');
         }
@@ -49,10 +47,7 @@ const SignIn: React.FC = () => {
         console.error('Error fetching CSRF token:', error);
       }
     };
-
     fetchCSRFToken();
-    const lacuki = Cookies.get('csrftoken');
-    console.log(lacuki);
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
