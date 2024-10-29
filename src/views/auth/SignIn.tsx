@@ -3,6 +3,7 @@ import { Input, Button, FormControl, FormLabel, FormErrorMessage } from '@chakra
 import { useAuth } from './AuthContext';
 import { Link } from 'react-router-dom';
 import { API_ADDRESS } from 'variables/apiSettings';
+import Cookies from 'js-cookie';
 
 const SignIn: React.FC = () => {
   const [username, setUsername] = useState<string>('');
@@ -48,6 +49,7 @@ const SignIn: React.FC = () => {
     };
 
     fetchCSRFToken();
+    Cookies.get('csrftoken');
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
