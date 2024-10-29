@@ -51,7 +51,7 @@ const SignIn: React.FC = () => {
 
     try {
       const csrfToken = getCSRFToken();
-      
+      console.log("Hola este es el token", csrfToken);
       const response = await fetch(`${API_ADDRESS}login/`, {
         method: 'POST',
         headers: {
