@@ -36,7 +36,9 @@ const SignIn: React.FC = () => {
           credentials: 'include',
         });
         if (response.ok) {
-          setCsrfToken(getCSRFTokenFromCookie()); // Almacena el token en el estado
+          setCsrfToken(getCSRFTokenFromCookie());
+          console.log(response.headers.get('Set-Cookie'));
+          console.log(csrfToken) // Almacena el token en el estado
         } else {
           console.error('Failed to fetch CSRF token');
         }
