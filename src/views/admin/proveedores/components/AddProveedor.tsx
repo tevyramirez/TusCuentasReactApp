@@ -17,19 +17,11 @@ import {
 } from '@chakra-ui/react';
 import Card from 'components/card/';
 import { MdPersonAdd, MdArrowBack } from 'react-icons/md';
+import { Proveedor } from 'types/proveedores/proveedores';
 
 interface AddProveedorProps {
   onGoBack: () => void;
   update: () => void;
-}
-
-interface Proveedor {
-  rut: string;
-  nombre: string;
-  apellido: string;
-  telefono: string;
-  email: string;
-  servicio: string;
 }
 
 const AddProveedor: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
@@ -37,7 +29,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
     rut: '',
     nombre: '',
     apellido: '',
-    telefono: '',
+    numero_telefono: '',
     email: '',
     servicio: '',
   });
@@ -64,7 +56,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
     if (!proveedor.rut) newErrors.rut = 'El RUT es obligatorio';
     if (!proveedor.nombre) newErrors.nombre = 'El nombre es obligatorio';
     if (!proveedor.apellido) newErrors.apellido = 'El apellido es obligatorio';
-    if (!proveedor.telefono) newErrors.telefono = 'El teléfono es obligatorio';
+    if (!proveedor.numero_telefono) newErrors.numero_telefono = 'El teléfono es obligatorio';
     if (proveedor.email && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(proveedor.email)) {
       newErrors.email = 'El email no es válido';
     }
@@ -110,7 +102,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
       rut: '',
       nombre: '',
       apellido: '',
-      telefono: '',
+      numero_telefono: '',
       email: '',
       servicio: '',
     });
@@ -147,10 +139,10 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
             <Input name="email" value={proveedor.email} onChange={handleChange} placeholder="Ingrese email" />
             <FormErrorMessage>{errors.email}</FormErrorMessage>
           </FormControl>
-          <FormControl isInvalid={!!errors.telefono}>
+          <FormControl isInvalid={!!errors.numero_telefono}>
             <FormLabel>Número Telefónico</FormLabel>
-            <Input name="telefono" value={proveedor.telefono} onChange={handleChange} placeholder="Ingrese teléfono" />
-            <FormErrorMessage>{errors.telefono}</FormErrorMessage>
+            <Input name="telefono" value={proveedor.numero_telefono} onChange={handleChange} placeholder="Ingrese teléfono" />
+            <FormErrorMessage>{errors.numero_telefono}</FormErrorMessage>
           </FormControl>
         </Flex>
         <Text fontSize="xl" fontWeight="bold">

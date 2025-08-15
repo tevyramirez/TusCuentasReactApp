@@ -19,3 +19,14 @@ export const obtenerPropietarios = async () => {
     throw error;
   }
 };
+
+export const guardarPropietario = async (propietario:any) => {
+  try {
+    const response = await axios.post("http://localhost:8000/api/propietarios/", propietario);
+    console.log("Propietario guardado:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error al guardar el propietario:", error);
+    throw error;
+  }
+}

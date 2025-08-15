@@ -18,7 +18,7 @@ import {
 import Card from 'components/card/';
 import { MdPersonAdd, MdArrowBack } from 'react-icons/md';
 import { validateRut } from "@cristiansantana/chile-rut";
-
+import { guardarPropietario } from 'views/admin/propietarios/api/propietariosApi';
 interface AddPropietarioProps {
   onGoBack: () => void;
   update: () => void;
@@ -87,9 +87,10 @@ const AddPropietario: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => 
   const handleSubmit = async () => {
     if (validate()) {
       setIsSubmitting(true);
+      console.log('Propietario:', propietario);
+      console.log('Relación con lote:', relacionLote);
       try {
-        // Aquí iría la lógica para enviar los datos al servidor
-        // Por ahora, simularemos una operación exitosa
+        guardarPropietario(propietario);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         toast({

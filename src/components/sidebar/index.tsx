@@ -70,7 +70,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
       if (periodosAbiertos.length > 0) {
         sortedPeriodosCerrados.unshift(periodosAbiertos[0]);
       }
-      setPeriodos(sortedPeriodosCerrados);
+       setPeriodos(sortedPeriodosCerrados);
       if (sortedPeriodosCerrados.length > 0) {
         setSelectedPeriodoId(sortedPeriodosCerrados[0].id_periodo);
         dispatch(setPeriodoActual(sortedPeriodosCerrados[0].id_periodo));
@@ -158,24 +158,22 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
   
 
   const renderButton = () => {
-    if (selectedPeriodoId === null) {
+    if (selectedPeriodoId === null && periodos.length > 0) {
       return (
         <Button size='sm' colorScheme="blue" isDisabled>
           Seleccione un periodo
         </Button>
       );
     }
+    const selectedPeriodo = periodos.find(periodo => periodo.id_periodo === selectedPeriodoId) ?? {
+      id_periodo: 0,
+      fecha_inicio: "",
+      fecha_fin: "",
+      estado: "",
+    };
 
-    const selectedPeriodo = periodos.find(periodo => periodo.id_periodo === selectedPeriodoId);
-    if (!selectedPeriodo) {
-      return (
-        <Button size='sm' colorScheme="blue" isDisabled>
-          Periodo no encontrado
-        </Button>
-      );
-    }
-
-    if (selectedPeriodo.estado === 'cerrado' && periodos[0].id_periodo === selectedPeriodoId) {
+    if ((selectedPeriodo.estado === 'cerrado' && periodos[0].id_periodo === selectedPeriodoId) || periodos.length === 0 || !periodos) {
+      
       return (
         <Button size='sm' onClick={handleOpen} colorScheme="blue">
           Abrir Periodo
