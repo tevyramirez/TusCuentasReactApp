@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Proveedor } from 'types/proveedores/proveedores';
+import { Proveedor } from 'types/proveedores';
 
 export const obtenerProveedores = async () => {
   try {
@@ -21,7 +21,14 @@ export const obtenerProveedores = async () => {
 
 export const guardarProveedores = async (proveedor: Proveedor) => {
   try {
-    const response = await axios.post("http://localhost:8000/api/proveedores/", proveedor);
+    let token = localStorage.getItem('token');
+    console.log("Token:", token);
+    const response = await axios.post("http://localhost:8000/api/proveedores/", proveedor, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      }
+    });
     console.log("Proveedor guardado:", response.data);
     return response.data;
   } catch (error) {

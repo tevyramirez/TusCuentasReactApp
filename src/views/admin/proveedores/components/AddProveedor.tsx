@@ -17,7 +17,8 @@ import {
 } from '@chakra-ui/react';
 import Card from 'components/card/';
 import { MdPersonAdd, MdArrowBack } from 'react-icons/md';
-import { Proveedor } from 'types/proveedores/proveedores';
+import { Proveedor } from 'types/proveedores';
+import { guardarProveedores } from '../api/proveedoresApi';
 
 interface AddProveedorProps {
   onGoBack: () => void;
@@ -70,6 +71,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
       try {
         // Aquí iría la lógica para enviar los datos al servidor
         // Por ahora, simularemos una operación exitosa
+        guardarProveedores(proveedor);
         await new Promise((resolve) => setTimeout(resolve, 1000));
         
         toast({
@@ -141,7 +143,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ onGoBack, update }) => {
           </FormControl>
           <FormControl isInvalid={!!errors.numero_telefono}>
             <FormLabel>Número Telefónico</FormLabel>
-            <Input name="telefono" value={proveedor.numero_telefono} onChange={handleChange} placeholder="Ingrese teléfono" />
+            <Input name="numero_telefono" value={proveedor.numero_telefono} onChange={handleChange} placeholder="Ingrese teléfono" />
             <FormErrorMessage>{errors.numero_telefono}</FormErrorMessage>
           </FormControl>
         </Flex>
