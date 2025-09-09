@@ -28,8 +28,7 @@ import {
   Select,
   Input,
 } from '@chakra-ui/react'
-import { DayPicker } from 'react-day-picker'
-import { Bar, Pie } from 'react-chartjs-2'
+import { Pie } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -40,13 +39,13 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { FaDollarSign, FaUsers, FaCalendar, FaChartBar, FaFileAlt } from 'react-icons/fa'
+import { FaDollarSign, FaUsers, FaCalendar, FaFileAlt } from 'react-icons/fa'
 import { API_ADDRESS } from "../../../variables/apiSettings"
 import { useSelector } from "react-redux"
 import { useNavigate } from 'react-router-dom'
 import PaymentNoticePreview from './pdf'
+import MonthlyTrendsReport from './MonthlyTrendsReport'
+import AgingReport from './AgingReport'
 
 ChartJS.register(
   CategoryScale,
@@ -61,11 +60,6 @@ ChartJS.register(
 interface SaldosApi {
   suma_pendiente: number,
   suma_a_favor: number,
-}
-
-interface PeriodoCierre {
-  id: number,
-  mesInicio: string,
 }
 
 interface Owner {
@@ -145,19 +139,14 @@ function OwnerSelector({ onOwnerSelect }: { onOwnerSelect: (owner: Owner) => voi
 }
 
 export default function VistaPreviaCierrePeriodo() {
-  const [fecha, setFecha] = useState<Date | undefined>(new Date())
-  const [resumen, setResumen] = useState<any>(null)
-  const [gastos, setGastos] = useState<any[]>([])
-  const [saldos, setSaldos] = useState<any[]>([])
   const [saldosApi, setSaldosApi] = useState<SaldosApi>({
     suma_pendiente: 0,
     suma_a_favor: 0,
   })
-  const [periodoCierre, setPeriodoCierre] = useState<PeriodoCierre | null>(null)
-  const [proyecciones, setProyecciones] = useState<any>(null)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
   const [gastosPorCategoria, setGastosPorCategoria] = useState<any[]>([])
   const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null)
+  const [paymentNoticeData, setPaymentNoticeData] = useState<any>(null)
   const cancelRef = React.useRef()
   const periodo = useSelector((state: any) => state.periodo.periodoActual)
   const toast = useToast()
@@ -166,35 +155,34 @@ export default function VistaPreviaCierrePeriodo() {
   const accentColor = useColorModeValue('navy.500', 'navy.400')
   
   useEffect(() => {
-    getSaldosData();
-  }, [])
-  
-  const getSaldosData = async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_ADDRESS}sumasaldos/periodo/${periodo}/`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-      });
-      const data = await response.json();
-      setSaldosApi(data.saldos)
-      setPeriodoCierre(data)
-      setGastosPorCategoria(data.gastos_por_categoria.gastos_por_categoria)
-    } catch (error) {
-      console.error("Error al sumar saldos:", error);
-      toast({
-        title: "Error",
-        description: "Hubo un problema al sumar los saldos.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      })
-    }
-  };
+    const getSaldosData = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const response = await fetch(`${API_ADDRESS}sumasaldos/periodo/${periodo}/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        });
+        const data = await response.json();
+        setSaldosApi(data.saldos)
+        setGastosPorCategoria(data.gastos_por_categoria.gastos_por_categoria)
+      } catch (error) {
+        console.error("Error al sumar saldos:", error);
+        toast({
+          title: "Error",
+          description: "Hubo un problema al sumar los saldos.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        })
+      }
+    };
 
+    getSaldosData();
+  }, [periodo, toast])
+  
   const cerrarPeriodo = async (periodoId: number) => {
     try {
       const token = localStorage.getItem("access_token");
@@ -205,7 +193,9 @@ export default function VistaPreviaCierrePeriodo() {
           "Authorization": `Bearer ${token}`
         },
       });
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error('Failed to close period');
+      }
       toast({
         title: "Período cerrado",
         description: "El período se ha cerrado exitosamente.",
@@ -237,8 +227,32 @@ export default function VistaPreviaCierrePeriodo() {
 
   const handleOwnerSelect = (owner: Owner) => {
     setSelectedOwner(owner);
-    // Here you would typically fetch the payment notice data for the selected owner
-    // and update the PaymentNoticePreview component
+    // Fetch payment notice data for the selected owner
+    fetchPaymentNoticeData(owner.id);
+  };
+
+  const fetchPaymentNoticeData = async (ownerId: number) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_ADDRESS}aviso-cobro/${ownerId}/${periodo}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+      });
+      const data = await response.json();
+      setPaymentNoticeData(data);
+    } catch (error) {
+      console.error("Error fetching payment notice data:", error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al obtener los datos del aviso de cobro.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const pieData = {
@@ -265,24 +279,6 @@ export default function VistaPreviaCierrePeriodo() {
     ],
   }
 
-  const pieOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "right",
-      },
-      title: {
-        display: true,
-        text: "Resumen de Gastos",
-        font: {
-          size: 20,
-         // Ajuste aquí
-        },
-      },
-    },
-  };
-  
-
   return (
     <Box minH="100vh" bg={bgColor} p={4}>
       <Container maxW="container.xl">
@@ -290,6 +286,8 @@ export default function VistaPreviaCierrePeriodo() {
           <TabList mb="1em">
             <Tab><Icon as={FaDollarSign} mr={2} /> Resumen</Tab>
             <Tab><Icon as={FaFileAlt} mr={2} /> Informe</Tab>
+            <Tab><Icon as={FaCalendar} mr={2} /> Tendencias Mensuales</Tab>
+            <Tab><Icon as={FaUsers} mr={2} /> Envejecimiento Deudas</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -297,19 +295,19 @@ export default function VistaPreviaCierrePeriodo() {
                 <TarjetaResumen
                   icon={FaDollarSign}
                   titulo="Gastos Totales"
-                  valor={resumen ? `$${saldosApi.suma_pendiente.toFixed(0)}` : 'Cargando...'}
+                  valor={saldosApi ? `$${saldosApi.suma_pendiente.toFixed(0)}` : 'Cargando...'}
                   colorAcento={accentColor}
                 />
                 <TarjetaResumen
                   icon={FaUsers}
                   titulo="Saldos de Propietarios"
-                  valor={resumen ? `$${saldosApi.suma_a_favor.toFixed(0)}` : 'Cargando...'}
+                  valor={saldosApi ? `$${saldosApi.suma_a_favor.toFixed(0)}` : 'Cargando...'}
                   colorAcento={accentColor}
                 />
                 <TarjetaResumen
                   icon={FaCalendar}
                   titulo="Período de Cierre"
-                  valor={fecha ? format(fecha, 'MMMM yyyy', { locale: es }) : 'Seleccione una fecha'}
+                  valor={periodo ? `Período ${periodo}` : 'Seleccione un período'}
                   colorAcento={accentColor}
                 />
               </Grid>
@@ -340,13 +338,19 @@ export default function VistaPreviaCierrePeriodo() {
                     </Flex>
                   )}
                   <Box mt={6}>
-                    <PaymentNoticePreview />
+                    <PaymentNoticePreview data={paymentNoticeData} />
                   </Box>
                   <Button leftIcon={<Icon as={FaFileAlt} />} colorScheme="blue" mt={4}>
                     Descargar Informe Completo
                   </Button>
                 </CardBody>
               </Card>
+            </TabPanel>
+            <TabPanel>
+              <MonthlyTrendsReport />
+            </TabPanel>
+            <TabPanel>
+              <AgingReport />
             </TabPanel>
           </TabPanels>
         </Tabs>

@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import ComplexTable from "./components/ComplexTable";
 import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddRecaudaciones";
-import axios from 'axios'
-import { API_ADDRESS } from '../../../variables/apiSettings'
+import api from 'services/api';
 import { capitalize } from 'lodash';
 import { 
   useToast, 
@@ -58,18 +57,12 @@ const Dashboard: React.FC = () => {
   const obtenerData = async () => {
     setIsLoading(true);
     try {
-      const data = await axios.get(API_ADDRESS + "saldos/",
-        {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-        },
+      const data = await api.get('saldos/', {
         params: {
-          "page": pageIndex + 1,
-          "page_size": pageSize
-        }
-      }
-    );
+          page: pageIndex + 1,
+          page_size: pageSize,
+        },
+      });
 
       const dataMapped = data.data.results.map((item: any) => (
         {
@@ -112,14 +105,7 @@ const Dashboard: React.FC = () => {
         metodo_Pago: updatedData["Metodo Pago"],
         descripcion: updatedData.Descripcion,
       }
-      await axios.put(`${API_ADDRESS}saldos/${formatedData.id}/`, formatedData,
-        {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-        }
-      }
-    );
+      await api.put(`saldos/${formatedData.id}/`, formatedData);
       obtenerData();
       toast({
         title: "Gasto actualizado",
@@ -140,14 +126,7 @@ const Dashboard: React.FC = () => {
   const handleDeleteGastos = async (id: string) => {
     console.log("Testing")
     try {
-      await axios.delete(`${API_ADDRESS}saldos/${id}/`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
-        }
-      );
+      await api.delete(`saldos/${id}/`);
       obtenerData();
       toast({
         title: "Gasto eliminado",

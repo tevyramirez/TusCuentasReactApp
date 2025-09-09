@@ -22,16 +22,16 @@
     "downlevelIteration": true,
     "baseUrl": "src",
     "paths": {
-      "@assets/*": ["assets/*"],
-      "assets/*": ["assets/*"],
-      "components/*": ["components/*"],
-      "layouts/*": ["layouts/*"],
-      "views/*": ["views/*"],
-      "app/*": ["app/*"],
-      "types/*": ["types/*"],
-      "variables/*": ["variables/*"],
-      "routes": ["routes"],
-      "routes/*": ["routes/*"]
+      "@assets/*": ["./assets/*"],
+      "assets/*": ["./assets/*"],
+      "components/*": ["./components/*"],
+      "layouts/*": ["./layouts/*"],
+      "views/*": ["./views/*"],
+      "app/*": ["./app/*"],
+      "types/*": ["./types/*"],
+      "variables/*": ["./variables/*"],
+      "routes": ["./routes"],
+      "routes/*": ["./routes/*"]
     }
   },
   "include": [

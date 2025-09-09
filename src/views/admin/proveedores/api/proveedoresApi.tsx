@@ -1,38 +1,39 @@
-import axios from 'axios';
-import { Proveedor } from 'types/proveedores';
+import api from 'services/api';
+import { Proveedor, ProveedorCreate, ProveedorResponse } from 'types/proveedores';
 
-export const obtenerProveedores = async () => {
+export const obtenerProveedores = async (): Promise<Proveedor[]> => {
   try {
-    const data = await axios.get("http://localhost:8000/api/proveedores/");
-    const dataMapped = data.data.map((item:Proveedor) => ({
+    const response = await api.get<ProveedorResponse | Proveedor[]>('proveedores/');
+    const data = Array.isArray(response.data) ? response.data : response.data.results ?? [];
+    const dataMapped: Proveedor[] = data.map((item: Proveedor) => ({
       nombre: item.nombre,
       apellido: item.apellido,
       email: item.email,
       numero_telefono: item.numero_telefono,
       razon_social: item.razon_social,
+      rut: item.rut,
+      servicio: item.servicio,
+      id: item.id ?? item.id_proveedor ?? item.pk,
     }));
-    console.log("API Connected Proveedores")
+    console.log('API Connected Proveedores');
     return dataMapped;
   } catch (error) {
-    console.error("Error al obtener los propietarios:", error);
+    console.error('Error al obtener los propietarios:', error);
     throw error;
   }
 };
 
-export const guardarProveedores = async (proveedor: Proveedor) => {
+export const guardarProveedores = async (proveedor: ProveedorCreate) => {
   try {
-    let token = localStorage.getItem('token');
-    console.log("Token:", token);
-    const response = await axios.post("http://localhost:8000/api/proveedores/", proveedor, {
+    const response = await api.post('proveedores/', proveedor, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json',
-      }
+      },
     });
-    console.log("Proveedor guardado:", response.data);
+    console.log('Proveedor guardado:', response.data);
     return response.data;
   } catch (error) {
-    console.error("Error al guardar el proveedor:", error);
+    console.error('Error al guardar el proveedor:', error);
     throw error;
   }
-}
+};

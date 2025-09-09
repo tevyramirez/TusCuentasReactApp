@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import ComplexTable from "views/components/ComplexTable";
 import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddGastos";
-import axios from 'axios';
-import { API_ADDRESS } from '../../../variables/apiSettings';
+import api from 'services/api';
 import { capitalize } from 'lodash';
 import { 
   useToast, 
@@ -42,11 +41,7 @@ const Dashboard: React.FC = () => {
   const obtenerData = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_ADDRESS}gastos/periodo/${periodoSeleccionado}/`, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-        },
+      const response = await api.get(`gastos/periodo/${periodoSeleccionado}/`, {
         params: {
           "page": pageIndex + 1,
           "page_size": pageSize
@@ -106,12 +101,7 @@ const Dashboard: React.FC = () => {
         descripcion: updatedData.Descripcion,
       };
 
-      await axios.put(`${API_ADDRESS}gastos/${formatedData.id}/`, formatedData, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-        }
-      });
+      await api.put(`gastos/${formatedData.id}/`, formatedData);
 
       obtenerData();
       toast({
@@ -133,12 +123,7 @@ const Dashboard: React.FC = () => {
 
   const handleDeleteGastos = async (id: string) => {
     try {
-      await axios.delete(`${API_ADDRESS}gastos/${id}/`, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-        }
-      });
+      await api.delete(`gastos/${id}/`);
 
       obtenerData();
       toast({

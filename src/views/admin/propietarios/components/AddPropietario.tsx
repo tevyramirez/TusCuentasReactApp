@@ -85,12 +85,13 @@ const AddPropietario: React.FC<AddPropietarioProps> = ({ onGoBack, update }) => 
   };
 
   const handleSubmit = async () => {
+    console.log(errors);
     if (validate()) {
       setIsSubmitting(true);
       console.log('Propietario:', propietario);
       console.log('Relación con lote:', relacionLote);
       try {
-        guardarPropietario(propietario);
+        await guardarPropietario(propietario);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         toast({

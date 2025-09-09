@@ -39,12 +39,11 @@ import {
   TagCloseButton,
 } from '@chakra-ui/react'
 import { SearchIcon, CalendarIcon, AttachmentIcon, AddIcon } from '@chakra-ui/icons'
-import axios from 'axios'
 import DatePicker from 'react-datepicker'
-import { API_ADDRESS } from 'variables/apiSettings'
 import debounce from 'lodash/debounce'
 import { setPeriodoActual } from 'features/periodo/periodoSlice';
 import { useAppSelector } from 'app/hooks';
+import api from 'services/api'
 
 interface Categoria {
   id_categoria: number
@@ -279,12 +278,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
     debounce(async (searchTerm: string) => {
       if (searchTerm.length > 2) {
         try {
-          const response = await axios.get(`${API_ADDRESS}proveedores/?q=${searchTerm}`, {
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-            }
-          })
+          const response = await api.get(`proveedores/?q=${searchTerm}`)
           setFilteredProveedores(response.data)
         } catch (error) {
           console.error('Error al buscar proveedores:', error)
@@ -309,12 +303,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
       formData.append('file', selectedFile)
       console.log(formData)
       try {
-        await axios.post(`${API_ADDRESS}gastos/${gastoId}/upload/`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Content-Disposition': 'attachment; filename=' + selectedFile.name,
-          },
-        })
+        await api.post(`gastos/${gastoId}/upload/`, formData)
         toast({
           title: 'Archivo Subido',
           description: 'El archivo se subió correctamente.',
@@ -339,12 +328,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
   useEffect(() => {
     async function fetchCategorias() {
       try {
-        const response = await axios.get(API_ADDRESS + 'categorias-gastos/', {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
-        })
+        const response = await api.get('categorias-gastos/')
         setCategorias(response.data.results)
       } catch (error) {
         console.error('Error al obtener las categorías:', error)
@@ -353,12 +337,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
 
     async function fetchLotes() {
       try {
-        const response = await axios.get(API_ADDRESS + 'lotes/', {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
-        })
+        const response = await api.get('lotes/')
         setLotes(response.data.results)
       } catch (error) {
         console.error('Error al obtener los lotes:', error)
@@ -367,12 +346,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
 
     async function fetchPeriodo() {
       try {
-        const response = await axios.get(API_ADDRESS + 'periodo/', {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
-        })
+        const response = await api.get('periodo/')
         const periodoAbierto = response.data.find((periodo: Periodo) => periodo.estado === "abierto")
         if (periodoAbierto) {
           console.log(periodoAbierto)
@@ -407,12 +381,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
           periodo: periodoActual,
           es_general: gasto.es_general,
         }
-        const response = await axios.post(API_ADDRESS + 'gastos/', gastoUpload, {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`,
-          }
-        })
+        const response = await api.post('gastos/', gastoUpload)
         const gastoId = response.data.id_gasto
 
         if (selectedFile) {
@@ -473,12 +442,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
 
   const handleCreateNewProveedor = async () => {
     try {
-      const response = await axios.post(API_ADDRESS + 'proveedores/', newProveedor, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`,
-        }
-      })
+      const response = await api.post('proveedores/', newProveedor)
       const createdProveedor = response.data
       setProveedores(prev => [...prev, createdProveedor])
       handleProveedorChange(createdProveedor)

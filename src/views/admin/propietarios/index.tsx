@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import ComplexTable from "views/components/ComplexTable";
 import FilterBar from "./components/FilterBar";
 import AddPropietario from "./components/AddPropietario";
-import axios from 'axios';
-import { API_ADDRESS } from '../../../variables/apiSettings';
+import api from 'services/api';
 import { 
   useToast, 
   Button, 
@@ -38,21 +37,14 @@ const PropietariosDashboard: React.FC = () => {
   const obtenerData = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_ADDRESS}propietarios/`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          },
+      const response = await api.get('propietarios/', {
           params: {
             "page": pageIndex + 1,
             "page_size": pageSize
           }
-
-        }
-      );
+      });
       const { results, count } = response.data;
-      const dataMapped = response.data.results.map((item: any) => ({
+      const dataMapped = results.map((item: any) => ({
         "ID": item.id,
         "Propiedades": item.lotes.map((lote: any) => `${lote.lote.numero_unidad}`).join(", "),
         "Rol": item.lotes.map((lote:any) =>`${lote.tipo_relacion}`),
@@ -117,14 +109,7 @@ const PropietariosDashboard: React.FC = () => {
         numero_telefono: updatedData["Telefono"],
         razon_social: updatedData["Razon Social"],
       }
-      await axios.put(`${API_ADDRESS}propietarios/${formatedData.id}/`, formatedData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
-        }
-      );
+      await api.put(`propietarios/${formatedData.id}/`, formatedData);
       obtenerData();
       toast ({
         title: "Propietario actualizado",
@@ -145,14 +130,7 @@ const PropietariosDashboard: React.FC = () => {
 
   const handleDeletePropietario = async (id: string) => {
     try {
-      await axios.delete(`${API_ADDRESS}propietarios/${id}/`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-          }
-        }
-      );
+      await api.delete(`propietarios/${id}/`);
       obtenerData();
       toast ({
         title: "Propietario eliminado",

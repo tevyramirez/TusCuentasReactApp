@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ComplexTable from "views/components/ComplexTable";
 import FilterBar from "./components/FilterBar";
 import AddProveedor from "./components/AddProveedor";
-import axios from 'axios';
+import api from 'services/api';
 import { API_ADDRESS } from 'variables/apiSettings';
 import * as XLSX from "xlsx";
 import NoDataMessage from "views/components/NoDataMessage";
@@ -35,11 +35,7 @@ const ProveedoresView: React.FC = () => {
   const obtenerData = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_ADDRESS}proveedores/`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
+      const response = await api.get('proveedores/', {
         params: {
           page: pageIndex + 1,
           page_size: pageSize,
@@ -104,12 +100,7 @@ const ProveedoresView: React.FC = () => {
         servicio: updated.Servicio,
         email: updated.Email,
       };
-      await axios.put(`${API_ADDRESS}proveedores/${payload.id}/`, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-      });
+      await api.put(`proveedores/${payload.id}/`, payload);
       await obtenerData();
       toast({ title: 'Proveedor actualizado', status: 'success', duration: 3000, isClosable: true });
     } catch (error) {
@@ -120,12 +111,7 @@ const ProveedoresView: React.FC = () => {
 
   const handleDelete = async (id: string | number) => {
     try {
-      await axios.delete(`${API_ADDRESS}proveedores/${id}/`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-      });
+      await api.delete(`proveedores/${id}/`);
       await obtenerData();
       toast({ title: 'Proveedor eliminado', status: 'success', duration: 3000, isClosable: true });
     } catch (error) {

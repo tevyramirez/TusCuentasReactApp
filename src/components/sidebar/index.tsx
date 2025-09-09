@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapseFilled } from "react-icons/tb";
 import Links from "./components/Links";
 import routes from "routes";
-import axios from 'axios';
-import { API_ADDRESS } from "variables/apiSettings";
+import api from 'services/api';
 import { useNavigate } from "react-router-dom";
 import { 
   Button, 
@@ -53,16 +52,8 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
     
     try {
       if (selectedPeriodoId === null) {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(API_ADDRESS+"periodo/", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-      });
-      const data2 = await response.json();
-      const data= data2.results;
+      const response = await api.get('periodo/');
+      const data = response.data.results;
       console.log(data)
       const periodosAbiertos = data.filter((periodo: Periodo) => periodo.estado === "abierto");
       const cerrados = data.filter((periodo: Periodo) => periodo.estado === "cerrado");
@@ -140,15 +131,7 @@ const Sidebar = (props: { open: boolean; onClose: React.MouseEventHandler<HTMLSp
 
   const abrirPeriodo = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(API_ADDRESS+"periodo/abrir/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-      });
-      const data = await response.json();
+      await api.post('periodo/abrir/');
       fetchPeriodos();
     } catch (error) {
       console.error("Error al abrir periodo:", error);

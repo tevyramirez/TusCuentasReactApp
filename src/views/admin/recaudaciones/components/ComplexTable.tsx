@@ -44,8 +44,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import DatePicker from 'react-datepicker';
-import axios from 'axios';
-import { API_ADDRESS } from 'variables/apiSettings';
+import api from 'services/api';
 import { motion, isValidMotionProp, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
@@ -245,20 +244,11 @@ export default function ComplexTable(props: { tableData: any, onUpdate: (updated
 
   const handleSubmitRecaudacion = useCallback(async (newRecaudacion: Recaudacion) => {
     try {
-      await axios.post(
-        `${API_ADDRESS}recaudaciones/`,
-        {
+      await api.post('recaudaciones/', {
           ...newRecaudacion,
-          fecha: newRecaudacion.fecha.toISOString().split("T")[0],
+          fecha: newRecaudacion.fecha.toISOString().split('T')[0],
           id_periodo_ingreso: periodoSeleccionado
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
+      });
       setExpandedRow(null);
       updateData();
     } catch (error) {

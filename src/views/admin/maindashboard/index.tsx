@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useSelector } from "react-redux"
-import axios from "axios"
+import api from 'services/api'
 import {
   Box,
   Grid,
@@ -66,19 +66,13 @@ export default function EnhancedDashboard() {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const token = localStorage.getItem("access_token")
-        const headers = {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        }
-
         const [sumaSaldos, gastosPorCategorias] = await Promise.all([
-          axios.get(`${API_ADDRESS}sumasaldos/`, { headers }),
-          axios.get(`${API_ADDRESS}gastos-por-categoria-por-periodo/`+periodoSeleccionado+'/', { headers }),
+          api.get('sumasaldos/'),
+          api.get(`gastos-por-categoria-por-periodo/${periodoSeleccionado}/`),
         ])
 
         setSaldos(sumaSaldos.data)
-        console.log (gastosPorCategorias.data)
+        console.log(gastosPorCategorias.data)
         setDataPieChart(gastosPorCategorias.data.gastos_por_categoria)
 
       
