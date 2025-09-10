@@ -43,6 +43,7 @@ import DatePicker from 'react-datepicker'
 import debounce from 'lodash/debounce'
 import { setPeriodoActual } from 'features/periodo/periodoSlice';
 import { useAppSelector } from 'app/hooks';
+import { Proveedor } from 'types/proveedores'
 import api from 'services/api'
 
 interface Categoria {
@@ -54,15 +55,6 @@ interface Categoria {
 interface AddGastoProps {
   onGoBack: () => void
   update: () => void
-}
-
-interface Proveedor {
-  id_proveedor: number
-  rut: string
-  nombre: string
-  apellido: string
-  telefono: string
-  categoriaGasto: number
 }
 
 interface Lote {
@@ -104,16 +96,22 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
   const [showCuotas, setShowCuotas] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const { isOpen, onOpen, onClose } = useDisclosure()
   const [searchTerm, setSearchTerm] = useState('')
   const [showProveedorModal, setShowProveedorModal] = useState(false)
-  const [newProveedor, setNewProveedor] = useState<Partial<Proveedor>>({})
+  const [newProveedor, setNewProveedor] = useState<Proveedor>({
+    rut: '',
+    nombre: '',
+    apellido: '',
+    numero_telefono: '',
+    email: '',
+    servicio: '',
+  })
   const [showProveedorSearch, setShowProveedorSearch] = useState(true)
   const periodoActual = useAppSelector((state) => state.periodo.periodoActual);
 
   const [gasto, setGasto] = useState<Gasto>({
     categoria: { id_categoria: 0, nombre: '', descripcion: '' },
-    proveedor: { id_proveedor: 0, rut: '', nombre: '', apellido: '', telefono: '', categoriaGasto: 0 },
+    proveedor: { id_proveedor: 0, rut: '', nombre: '', apellido: '', numero_telefono: '' },
     lote: { id_lote: 0, numero_unidad: '', metraje_cuadrado: 0, alicuota: 0 },
     fecha: startDate,
     monto: 0,
@@ -239,7 +237,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
   const handleRemoveProveedor = () => {
     setGasto(prevState => ({
       ...prevState,
-      proveedor: { id_proveedor: 0, rut: '', nombre: '', apellido: '', telefono: '', categoriaGasto: 0 },
+      proveedor: { id_proveedor: 0, rut: '', nombre: '', apellido: '', numero_telefono: '', categoriaGasto: 0 },
     }))
     setShowProveedorSearch(true)
   }
@@ -415,7 +413,7 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
   const handleAddAnother = () => {
     setGasto({
       categoria: { id_categoria: 0, nombre: '', descripcion: '' },
-      proveedor: { id_proveedor: 0, rut: '', nombre: '', apellido: '', telefono: '', categoriaGasto: 0 },
+      proveedor: { id_proveedor: 0, rut: '', nombre: '', apellido: '', numero_telefono: '' },
       lote: { id_lote: 0, numero_unidad: '', metraje_cuadrado: 0, alicuota: 0 },
       fecha: new Date(),
       monto: 0,
@@ -686,7 +684,15 @@ export default function GastoForm({ onGoBack, update }: AddGastoProps) {
               </FormControl>
               <FormControl>
                 <FormLabel>Teléfono</FormLabel>
-                <Input name="telefono" value={newProveedor.telefono || ''} onChange={handleNewProveedorChange} />
+                <Input name="numero_telefono" value={newProveedor.numero_telefono || ''} onChange={handleNewProveedorChange} />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Email</FormLabel>
+                <Input name="email" value={newProveedor.email || ''} onChange={handleNewProveedorChange} />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Servicio</FormLabel>
+                <Input name="servicio" value={newProveedor.servicio || ''} onChange={handleNewProveedorChange} />
               </FormControl>
             </VStack>
           </ModalBody>
